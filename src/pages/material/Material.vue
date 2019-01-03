@@ -1,5 +1,13 @@
 <template>
   <div class="material">
+    <div class="breadcrumb">
+      <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/material' }">原材料管理</el-breadcrumb-item>
+        <el-breadcrumb-item>入库单管理</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+
     <div class="searching">
       <el-form :inline="true" :model="searchingForm" class="searching-form">
         <el-form-item>
@@ -232,6 +240,9 @@ export default {
       margin-top: 20px;
       text-align: center;
     }
+  }
+  .breadcrumb {
+    padding: 20px 0 0 0;
   }
 }
 </style>
