@@ -9,16 +9,20 @@ Vue.use(Router)
 export default new Router({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes: [
-    {
-      path: '/',
-      name: 'materal',
-      component: Material
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: Login
-    }
+  routes: [{
+    path: '/',
+    name: 'material',
+    component: Material
+  },
+  {
+    path: '/material',
+    name: 'material',
+    component: Material
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login
+  }
   ]
 })

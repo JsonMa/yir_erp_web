@@ -28,5 +28,10 @@ export default {
 .warpper {
   width: 100%;
   height: 100%;
+  .main {
+    margin: 0 auto;
+    width: 1200px;
+    height: calc(100% - 160px);
+  }
 }
 </style>
