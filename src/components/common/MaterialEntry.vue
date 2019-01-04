@@ -30,15 +30,19 @@
           </td>
         </tr>
         <tr>
-          <th rowspan="3" colspan="2">{{entryDetail.remark}}</th>
+          <th rowspan="3" colspan="2">
+            <p class="entry-item">{{entryDetail.material.no}}</p>
+            <p class="entry-item">{{entryDetail.material.name}}</p>
+            <p class="entry-item">{{entryDetail.remark}}</p>
+          </th>
           <td>
-            <span class="entry-item-title">材料代号</span>
+            <span class="entry-item-title">材料型号</span>
           </td>
-          <td>{{entryDetail.material.no || '无'}}</td>
+          <td>{{entryDetail.material.model || '无'}}</td>
           <td>
-            <span class="entry-item-title">材料名称</span>
+            <span class="entry-item-title">材料规格</span>
           </td>
-          <td>{{entryDetail.material.name || '无'}}</td>
+          <td>{{entryDetail.material.specific || '无'}}</td>
         </tr>
         <tr>
           <td>
@@ -131,6 +135,9 @@ td,
 th {
   padding: 10px;
   width: 150px;
+}
+.entry-item {
+  padding-bottom: 10px;
 }
 .material-entry {
   .el-dialog__body {
