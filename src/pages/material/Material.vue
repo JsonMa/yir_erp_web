@@ -33,7 +33,7 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-input v-model="searchingForm.keyword" placeholder="关键字" class="keyword"></el-input>
+          <el-input v-model="searchingForm.keyword" placeholder="入库单关键字" class="keyword"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="searching" icon="el-icon-search">搜索</el-button>
@@ -42,12 +42,12 @@
     </div>
 
     <div class="material-entries">
-      <el-table :data="materialEntries" style="width: 100%">
+      <el-table :data="materialEntries" style="width: 100%" @row-click="showDetail">
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="table-expand">
               <el-form-item label="厂家：">
-                <span>{{ props.row.material.supplier }}</span>
+                <span>{{ props.row.material.name }}</span>
               </el-form-item>
               <el-form-item label="材料编码：">
                 <span>{{ props.row.material.no }}</span>
@@ -99,13 +99,23 @@
         class="paging-item"
       ></el-pagination>
     </div>
+
+    <MaterialEntry :entry-visible="entryVisable" :entry="currentEntry" @entry-close="entryClose"></MaterialEntry>
   </div>
 </template>
 
 <script>
+import MaterialEntry from '@/components/common/MaterialEntry.vue'
+
 const moment = require('moment-timezone')
+
 export default {
   name: 'Material',
+
+  components: {
+    MaterialEntry
+  },
+
   data () {
     return {
       searchingForm: {
@@ -149,7 +159,9 @@ export default {
             }
           }
         ]
-      }
+      },
+      currentEntry: {},
+      entryVisable: false
     }
   },
 
@@ -165,10 +177,20 @@ export default {
       })
     },
 
+    // 打开entry详情
+    showDetail (row) {
+      this.entryVisable = true
+      this.currentEntry = row
+    },
+
+    // 关闭entry详情
+    entryClose () {
+      this.entryVisable = false
+    },
+
     handleSizeChange () {},
 
     handleCurrentChange (currentPage) {
-      console.log(currentPage)
       this.page.currentPage = currentPage
       this.searching(false)
     },
@@ -178,7 +200,8 @@ export default {
       const { pageSize, currentPage } = this.page
       const defaultParams = {
         limit: pageSize,
-        offset: pageSize * (currentPage - 1)
+        offset: pageSize * (currentPage - 1),
+        embed: 'material'
       }
       this.$axios
         .get('/material_entries', {
