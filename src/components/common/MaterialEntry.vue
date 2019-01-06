@@ -128,14 +128,6 @@ export default {
 </script>
 
 <style lang="scss">
-div {
-  box-sizing: border-box;
-}
-td,
-th {
-  padding: 10px;
-  width: 150px;
-}
 .entry-item {
   padding-bottom: 10px;
 }
@@ -159,6 +151,11 @@ th {
 .entry-table {
   min-width: 920px;
   border: 1px solid silver;
+  td,
+  th {
+    padding: 10px;
+    width: 150px;
+  }
   .entry-item-title {
     font-weight: bold;
   }

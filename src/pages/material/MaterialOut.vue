@@ -1,20 +1,17 @@
 <template>
-  <div class="material">
+  <div class="material-out">
     <div class="breadcrumb">
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>原材料管理</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/material' }">原材料管理</el-breadcrumb-item>
+        <el-breadcrumb-item>出库单管理</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
 
     <div class="searching">
       <el-form :inline="true" :model="searchingForm" class="searching-form">
         <el-form-item>
-          <el-select
-            v-model="searchingForm.status"
-            placeholder="入库单状态"
-            class="materil-entry-status"
-          >
+          <el-select v-model="searchingForm.status" placeholder="出库单状态" class="materil-out-status">
             <el-option label="所有" value></el-option>
             <el-option label="未审核" value="UNREVIEW"></el-option>
             <el-option label="通过" value="PASSED"></el-option>
@@ -32,7 +29,7 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-input v-model="searchingForm.keyword" placeholder="入库单关键字" class="keyword"></el-input>
+          <el-input v-model="searchingForm.keyword" placeholder="出库单关键字" class="keyword"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="searching" icon="el-icon-search">搜索</el-button>
@@ -40,7 +37,7 @@
       </el-form>
     </div>
 
-    <div class="material-entries">
+    <!-- <div class="material-entries">
       <el-table :data="materialEntries" style="width: 100%" @row-click="showDetail">
         <el-table-column type="expand">
           <template slot-scope="props">
@@ -67,10 +64,10 @@
           </template>
         </el-table-column>
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
-        <el-table-column label="材料编号" prop="no"></el-table-column>
+        <el-table-column label="入库单编号" prop="no"></el-table-column>
         <el-table-column label="材料名称" prop="material.name"></el-table-column>
         <el-table-column label="型号" prop="material.model"></el-table-column>
-        <el-table-column label="库存数量" prop="real_count"></el-table-column>
+        <el-table-column label="入库数量" prop="real_count"></el-table-column>
         <el-table-column label="单位" prop="unit"></el-table-column>
         <el-table-column label="入库金额" prop="total_price"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
@@ -83,8 +80,7 @@
           </template>
         </el-table-column>
       </el-table>
-    </div>
-
+    </div>-->
     <div class="paging" v-if="materialEntries.length">
       <el-pagination
         @size-change="handleSizeChange"
@@ -99,17 +95,17 @@
       ></el-pagination>
     </div>
 
-    <MaterialOut :entry-visible="true" :entry="currentEntry" @entry-close="entryClose"></MaterialOut>
+    <MaterialOut :out-visible="outVisable" :out="currentOut" @out-close="outClose"></MaterialOut>
   </div>
 </template>
 
 <script>
-import MaterialOut from '@/components/common/MaterialEntry.vue';
+import MaterialOut from '@/components/common/MaterialOut.vue';
 
 const moment = require('moment-timezone')
 
 export default {
-  name: 'Material',
+  name: 'MaterialOut',
 
   components: {
     MaterialOut
@@ -159,8 +155,8 @@ export default {
           }
         ]
       },
-      currentEntry: {},
-      entryVisable: false
+      currentOut: {},
+      outVisable: false
     }
   },
 
@@ -176,15 +172,15 @@ export default {
       })
     },
 
-    // 打开entry详情
+    // 打开出库单详情
     showDetail (row) {
-      this.entryVisable = true
-      this.currentEntry = row
+      this.outVisable = true
+      this.currentOut = row
     },
 
-    // 关闭entry详情
-    entryClose () {
-      this.entryVisable = false
+    // 关闭出库详情
+    outClose () {
+      this.outVisable = false
     },
 
     handleSizeChange () {},
@@ -227,13 +223,12 @@ export default {
 
   created () {
     this.getMaterialEntries()
-    this.printer('table')
   }
 }
 </script>
 
 <style lang="scss">
-.material {
+.material-out {
   .table-expand {
     font-size: 0;
     label {
@@ -253,7 +248,7 @@ export default {
         width: 454px;
       }
     }
-    .materil-entry-status {
+    .materil-out-status {
       .el-input--suffix {
         .el-input__inner {
           width: 150px;

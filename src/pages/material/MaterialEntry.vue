@@ -1,9 +1,10 @@
 <template>
-  <div class="material">
+  <div class="material-entry">
     <div class="breadcrumb">
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>原材料管理</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/material' }">原材料管理</el-breadcrumb-item>
+        <el-breadcrumb-item>入库单管理</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
 
@@ -67,10 +68,10 @@
           </template>
         </el-table-column>
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
-        <el-table-column label="材料编号" prop="no"></el-table-column>
+        <el-table-column label="入库单编号" prop="no"></el-table-column>
         <el-table-column label="材料名称" prop="material.name"></el-table-column>
         <el-table-column label="型号" prop="material.model"></el-table-column>
-        <el-table-column label="库存数量" prop="real_count"></el-table-column>
+        <el-table-column label="入库数量" prop="real_count"></el-table-column>
         <el-table-column label="单位" prop="unit"></el-table-column>
         <el-table-column label="入库金额" prop="total_price"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
@@ -99,20 +100,20 @@
       ></el-pagination>
     </div>
 
-    <MaterialOut :entry-visible="true" :entry="currentEntry" @entry-close="entryClose"></MaterialOut>
+    <MaterialEntry :entry-visible="entryVisable" :entry="currentEntry" @entry-close="entryClose"></MaterialEntry>
   </div>
 </template>
 
 <script>
-import MaterialOut from '@/components/common/MaterialEntry.vue';
+import MaterialEntry from '@/components/common/MaterialEntry.vue';
 
 const moment = require('moment-timezone')
 
 export default {
-  name: 'Material',
+  name: 'MaterialEntry',
 
   components: {
-    MaterialOut
+    MaterialEntry
   },
 
   data () {
@@ -227,13 +228,12 @@ export default {
 
   created () {
     this.getMaterialEntries()
-    this.printer('table')
   }
 }
 </script>
 
 <style lang="scss">
-.material {
+.material-entry {
   .table-expand {
     font-size: 0;
     label {

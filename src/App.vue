@@ -5,7 +5,10 @@
 </template>
 
 <script>
-import Layout from '@/components/Layout.vue'
+import Layout from '@/components/Layout.vue';
+
+window.jQuery = require('jquery')
+require('printthis')
 
 export default {
   name: 'App',
@@ -17,7 +20,9 @@ export default {
 </script>
 
 <style lang="scss">
-
+div {
+  box-sizing: border-box;
+}
 html,
 body,
 #app,
