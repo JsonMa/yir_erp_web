@@ -7,6 +7,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './element-variables.scss'
 import axios from 'axios'
 
+Vue.prototype.$moment = require('moment-timezone')
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 Vue.prototype.$axios = axios.create({
