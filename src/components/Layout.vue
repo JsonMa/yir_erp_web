@@ -1,25 +1,28 @@
 <template>
   <div class="warpper">
-    <Header></Header>
+    <Header v-if="hederVisable"></Header>
     <main class="main">
       <router-view/>
     </main>
-    <Footer></Footer>
+    <Footer v-if="footerVisable"></Footer>
   </div>
 </template>
 
 <script>
-import Footer from '@/components/Footer.vue'
-import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue';
+import Header from '@/components/Header.vue';
 
 export default {
   name: 'Layout',
-  props: {
-    msg: String
-  },
   components: {
     Footer,
     Header
+  },
+  data () {
+    return {
+      hederVisable: false,
+      footerVisable: false
+    }
   }
 }
 </script>
