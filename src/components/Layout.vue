@@ -20,7 +20,7 @@ export default {
   },
   data () {
     return {
-      isLogin: true,
+      isLogin: this.$route.name === 'login',
       loginMain: 'login-main'
     }
   }
