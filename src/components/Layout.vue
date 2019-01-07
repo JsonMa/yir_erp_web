@@ -1,10 +1,10 @@
 <template>
   <div class="warpper">
-    <Header v-if="hederVisable"></Header>
-    <main class="main">
+    <Header v-if="!isLogin"></Header>
+    <main class="main" :class="[isLogin ? loginMain: '']">
       <router-view/>
     </main>
-    <Footer v-if="footerVisable"></Footer>
+    <Footer v-if="!isLogin"></Footer>
   </div>
 </template>
 
@@ -20,8 +20,8 @@ export default {
   },
   data () {
     return {
-      hederVisable: false,
-      footerVisable: false
+      isLogin: true,
+      loginMain: 'login-main'
     }
   }
 }
@@ -35,6 +35,9 @@ export default {
     margin: 0 auto;
     width: 1200px;
     height: calc(100% - 160px);
+  }
+  .login-main {
+    height: 100%;
   }
 }
 </style>
