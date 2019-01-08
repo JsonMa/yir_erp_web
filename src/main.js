@@ -12,7 +12,7 @@ Vue.config.productionTip = false
 Vue.use(ElementUI)
 Vue.prototype.$axios = axios.create({
   baseURL: 'http://127.0.0.1:7001/api',
-  timeout: 1000
+  timeout: 3000
 })
 
 new Vue({

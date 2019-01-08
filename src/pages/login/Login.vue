@@ -10,15 +10,15 @@
         label-width="100px"
         class="demo-ruleForm"
       >
-        <el-form-item label="用户名" prop="username">
+        <el-form-item label="账号：" prop="username">
           <el-input
             type="text"
             v-model="loginForm.username"
             autocomplete="off"
-            placeholder="请输入用户名"
+            placeholder="请输入用户名或手机号"
           ></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item label="密码：" prop="password">
           <el-input
             type="password"
             v-model="loginForm.password"
@@ -28,7 +28,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="login('loginForm')">登录</el-button>
-          <el-button @click="resetForm('loginForm')">重置</el-button>
+          <el-button @click="resetLogin('loginForm')">重置</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -42,7 +42,7 @@ export default {
   data () {
     var validateUsername = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('请输入用户名'))
+        callback(new Error('请输入用户名或手机号'))
       } else {
         callback()
       }
@@ -70,16 +70,19 @@ export default {
     }
   },
   methods: {
-    submitForm (loginForm) {
+    login (loginForm) {
+      const _this = this
       this.$refs[loginForm].validate(valid => {
         if (valid) {
-          alert('submit!')
+          this.$axios.post('/auth/login', this.loginForm).then(res => {
+            if (res.status === 200) _this.$router.push('/material')
+          })
         } else {
           return false
         }
       })
     },
-    resetForm (loginForm) {
+    resetLogin (loginForm) {
       this.$refs[loginForm].resetFields()
     }
   }
