@@ -39,40 +39,14 @@
 
     <div class="material-outs">
       <el-table :data="materialOuts" style="width: 100%" @row-click="showDetail">
-        <el-table-column type="expand">
-          <template slot-scope="props">
-            <el-form label-position="left" inline class="table-expand">
-              <el-form-item label="厂家：">
-                <span>{{ props.row.material.name }}</span>
-              </el-form-item>
-              <el-form-item label="材料编码：">
-                <span>{{ props.row.material.no }}</span>
-              </el-form-item>
-              <el-form-item label="采购员：">
-                <span>{{ props.row.buyer.name }}</span>
-              </el-form-item>
-              <el-form-item label="质检员：">
-                <span>{{ props.row.inspector.name }}</span>
-              </el-form-item>
-              <el-form-item label="质检结果：">
-                <span>{{ props.row.quality_result ? '通过' : '不通过' }}</span>
-              </el-form-item>
-              <el-form-item label="付款方式：">
-                <span>{{ props.row.purchase_method }}</span>
-              </el-form-item>
-            </el-form>
-          </template>
-        </el-table-column>
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
-        <el-table-column label="入库单编号" prop="no"></el-table-column>
-        <el-table-column label="材料名称" prop="material.name"></el-table-column>
-        <el-table-column label="型号" prop="material.model"></el-table-column>
-        <el-table-column label="入库数量" prop="real_count"></el-table-column>
-        <el-table-column label="单位" prop="unit"></el-table-column>
-        <el-table-column label="入库金额" prop="total_price"></el-table-column>
-        <el-table-column label="入库日期" prop="created_at"></el-table-column>
-        <el-table-column label="制单人" prop="maker.name" width="80px"></el-table-column>
-        <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
+        <el-table-column label="出库单编号" prop="no"></el-table-column>
+        <el-table-column label="原因" prop="reason"></el-table-column>
+        <el-table-column label="总数量" prop="total_count"></el-table-column>
+        <el-table-column label="制作者" prop="maker.name"></el-table-column>
+        <el-table-column label="申请者" prop="applicant.name"></el-table-column>
+        <el-table-column label="审核状态" prop="status"></el-table-column>
+        <el-table-column label="创建时间" prop="created_at" width="80px"></el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
             <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">修改</el-button>

@@ -9,9 +9,9 @@
 </template>
 
 <script>
-import Footer from '@/components/Footer.vue'
-import Header from '@/components/Header.vue'
-import { mapGetters } from 'vuex'
+import Footer from '@/components/Footer.vue';
+import Header from '@/components/Header.vue';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Layout',
@@ -32,11 +32,11 @@ export default {
   },
   watch: {
     navigator (value) {
-      this.isLogin = value === '/login'
+      this.isLogin = value === '/login';
     }
   },
   created () {
-    this.isLogin = this.$route.path === '/login'
+    this.isLogin = this.$route.path === '/login';
     const user = window.localStorage.getItem('user')
     if (user) this.$store.dispatch('user/updateUser', JSON.parse(user))
   }
