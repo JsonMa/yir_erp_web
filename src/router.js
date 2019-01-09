@@ -12,7 +12,7 @@ Vue.use(Router)
 
 const isLogin = () => {
   const user = window.localStorage.getItem('user')
-  return !!user
+  return !!user || Object.keys(store.state.user.user).length !== 0
 }
 
 const router = new Router({

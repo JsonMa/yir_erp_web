@@ -20,9 +20,9 @@
         </el-menu>
       </el-row>
       <div class="logout">
-        <span class="logout-welcome">欢迎你</span>
-        <span class="logout-username">{{user.roleName}}</span>
         <span class="logout-username">{{user.nick_name || user.tel || '匿名用户'}}</span>
+        <span class="logout-welcome">欢迎登录，您的用户类型是</span>
+        <span class="logout-roleName" v-if="user.roleName">{{user.roleName}}</span>
         <el-button type="text" @click="logout">退出登录</el-button>
       </div>
     </div>
@@ -79,6 +79,7 @@ export default {
         .then(res => {
           if (res.status === 200) {
             window.localStorage.removeItem('user')
+            this.$store.dispatch('user/updateUser', {})
             this.$router.push('/login')
           } else this.$message.error('退出登录失败')
         })
@@ -108,8 +109,9 @@ header {
   }
   .logout {
     color: rgb(255, 208, 75);
-    .logout-username {
-      margin-right: 10px;
+    .logout-username,
+    .logout-roleName {
+      margin: 0 10px;
     }
     .el-button--text {
       color: rgb(255, 208, 75);

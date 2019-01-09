@@ -37,6 +37,8 @@ export default {
   },
   created () {
     this.isLogin = this.$route.path === '/login'
+    const user = window.localStorage.getItem('user')
+    if (user) this.$store.dispatch('user/updateUser', JSON.parse(user))
   }
 }
 </script>
