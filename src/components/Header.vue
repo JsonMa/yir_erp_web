@@ -19,11 +19,19 @@
           <el-menu-item index="6" disabled>人员管理</el-menu-item>
         </el-menu>
       </el-row>
+      <div class="logout">
+        <span class="logout-welcome">欢迎你</span>
+        <span class="logout-username">{{user.roleName}}</span>
+        <span class="logout-username">{{user.nick_name || user.tel || '匿名用户'}}</span>
+        <el-button type="text" @click="logout">退出登录</el-button>
+      </div>
     </div>
   </header>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'Header',
   props: {
@@ -33,6 +41,11 @@ export default {
     return {
       activeIndex: '1'
     }
+  },
+  computed: {
+    ...mapGetters({
+      user: 'user/user'
+    })
   },
   methods: {
     rotuteTo (key, keyPath) {
@@ -59,6 +72,19 @@ export default {
           this.$router.push('material')
           break
       }
+    },
+    logout () {
+      this.$axios
+        .post('/auth/logout', this.loginForm)
+        .then(res => {
+          if (res.status === 200) {
+            window.localStorage.removeItem('user')
+            this.$router.push('/login')
+          } else this.$message.error('退出登录失败')
+        })
+        .catch(() => {
+          this.$message.error('接口请求失败')
+        })
     }
   }
 }
@@ -79,6 +105,19 @@ header {
   .header-item {
     padding: 10px;
     margin-left: 10px;
+  }
+  .logout {
+    color: rgb(255, 208, 75);
+    .logout-username {
+      margin-right: 10px;
+    }
+    .el-button--text {
+      color: rgb(255, 208, 75);
+      opacity: 0.8;
+      &:hover {
+        opacity: 1;
+      }
+    }
   }
 }
 </style>

@@ -71,12 +71,21 @@ export default {
   },
   methods: {
     login (loginForm) {
-      const _this = this
       this.$refs[loginForm].validate(valid => {
         if (valid) {
-          this.$axios.post('/auth/login', this.loginForm).then(res => {
-            if (res.status === 200) _this.$router.push('/material')
-          })
+          this.$axios
+            .post('/auth/login', this.loginForm)
+            .then(res => {
+              const userInfo = Object.assign(res.data.data, res.data.meta)
+              this.$store.dispatch('user/updateUser', userInfo)
+              window.localStorage.setItem('user', JSON.stringify(userInfo))
+              this.$router.push('/material')
+            })
+            .catch(err => {
+              if (err.request && err.request.status === 400) {
+                this.$message.error('账户或密码错误')
+              } else this.$message.error('接口请求失败')
+            })
         } else {
           return false
         }

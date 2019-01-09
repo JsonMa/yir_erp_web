@@ -9,8 +9,9 @@
 </template>
 
 <script>
-import Footer from '@/components/Footer.vue';
-import Header from '@/components/Header.vue';
+import Footer from '@/components/Footer.vue'
+import Header from '@/components/Header.vue'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Layout',
@@ -20,9 +21,22 @@ export default {
   },
   data () {
     return {
-      isLogin: this.$route.name === 'login',
+      isLogin: false,
       loginMain: 'login-main'
     }
+  },
+  computed: {
+    ...mapGetters({
+      navigator: 'navigator/navigator'
+    })
+  },
+  watch: {
+    navigator (value) {
+      this.isLogin = value === '/login'
+    }
+  },
+  created () {
+    this.isLogin = this.$route.path === '/login'
   }
 }
 </script>
