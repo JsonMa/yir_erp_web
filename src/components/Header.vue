@@ -27,7 +27,7 @@
       <div class="logout">
         <span class="logout-username">{{user.nick_name || user.tel || '匿名用户'}}</span>
         <span class="logout-welcome">欢迎登录，您的用户类型是</span>
-        <span class="logout-roleName" v-if="user.roleName">{{user.roleName}}</span>
+        <span class="logout-roleName">{{user.roleName || '未知'}}</span>
         <el-button type="text" @click="logout">退出登录</el-button>
       </div>
     </div>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Header',
@@ -57,31 +57,31 @@ export default {
       switch (key) {
         case '1-1':
           this.$router.push('/material')
-          break
+          break;
         case '1-2':
           this.$router.push('/material/entry')
-          break
+          break;
         case '1-3':
           this.$router.push('/material/out')
-          break
+          break;
         case 2:
           this.$router.push('/product')
-          break
+          break;
         case 3:
           this.$router.push('/wasted')
-          break
+          break;
         case 4:
           this.$router.push('/order')
-          break
+          break;
         case 5:
           this.$router.push('/cooperator')
-          break
+          break;
         case 6:
           this.$router.push('/user')
-          break
+          break;
         default:
           this.$router.push('/material')
-          break
+          break;
       }
     },
     logout () {
