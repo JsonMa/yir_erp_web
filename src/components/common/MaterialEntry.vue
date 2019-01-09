@@ -108,14 +108,14 @@ export default {
       entryDetail: {}
     }
   },
-  watch: {
-    entryVisible (value) {
-      this.visable = value
-    },
-    entry (value) {
-      this.entryDetail = value
-    }
-  },
+  // watch: {
+  //   entryVisible (value) {
+  //     this.visable = value
+  //   },
+  //   entry (value) {
+  //     this.entryDetail = value
+  //   }
+  // },
   methods: {
     close () {
       this.$emit('entry-close')

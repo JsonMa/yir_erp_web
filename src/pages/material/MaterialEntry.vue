@@ -105,7 +105,7 @@
 </template>
 
 <script>
-import MaterialEntry from '@/components/common/MaterialEntry.vue';
+import MaterialEntry from '@/components/common/MaterialEntry.vue'
 
 const moment = require('moment-timezone')
 
@@ -227,7 +227,7 @@ export default {
   },
 
   created () {
-    this.getMaterialEntries()
+    // this.getMaterialEntries()
   }
 }
 </script>

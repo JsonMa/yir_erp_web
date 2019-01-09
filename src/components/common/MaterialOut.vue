@@ -110,14 +110,14 @@ export default {
       }
     }
   },
-  watch: {
-    outVisible (value) {
-      this.visable = value
-    },
-    out (value) {
-      this.outDetail = value
-    }
-  },
+  // watch: {
+  //   outVisible (value) {
+  //     this.visable = value
+  //   },
+  //   out (value) {
+  //     this.outDetail = value
+  //   }
+  // },
   methods: {
     close () {
       this.$emit('entry-close')

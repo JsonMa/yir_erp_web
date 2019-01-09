@@ -11,7 +11,12 @@
           text-color="#fff"
           active-text-color="#ffd04b"
         >
-          <el-menu-item index="1">原材料管理</el-menu-item>
+          <el-submenu index="1">
+            <template slot="title">原材料管理</template>
+            <el-menu-item index="1-1">原材料管理</el-menu-item>
+            <el-menu-item index="1-2">入库单管理</el-menu-item>
+            <el-menu-item index="1-3">出库单管理</el-menu-item>
+          </el-submenu>
           <el-menu-item index="2" disabled>成品管理</el-menu-item>
           <el-menu-item index="3" disabled>废料管理</el-menu-item>
           <el-menu-item index="4" disabled>订单管理</el-menu-item>
@@ -39,7 +44,7 @@ export default {
   },
   data () {
     return {
-      activeIndex: '1'
+      activeIndex: '1-1'
     }
   },
   computed: {
@@ -50,26 +55,32 @@ export default {
   methods: {
     rotuteTo (key, keyPath) {
       switch (key) {
-        case 1:
-          this.$router.push('material')
+        case '1-1':
+          this.$router.push('/material')
+          break
+        case '1-2':
+          this.$router.push('/material/entry')
+          break
+        case '1-3':
+          this.$router.push('/material/out')
           break
         case 2:
-          this.$router.push('product')
+          this.$router.push('/product')
           break
         case 3:
-          this.$router.push('wasted')
+          this.$router.push('/wasted')
           break
         case 4:
-          this.$router.push('order')
+          this.$router.push('/order')
           break
         case 5:
-          this.$router.push('cooperator')
+          this.$router.push('/cooperator')
           break
         case 6:
-          this.$router.push('user')
+          this.$router.push('/user')
           break
         default:
-          this.$router.push('material')
+          this.$router.push('/material')
           break
       }
     },
@@ -108,6 +119,7 @@ header {
     margin-left: 10px;
   }
   .logout {
+    font-size: 14px;
     color: rgb(255, 208, 75);
     .logout-username,
     .logout-roleName {

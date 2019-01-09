@@ -37,8 +37,8 @@
       </el-form>
     </div>
 
-    <!-- <div class="material-entries">
-      <el-table :data="materialEntries" style="width: 100%" @row-click="showDetail">
+    <div class="material-outs">
+      <el-table :data="materialOuts" style="width: 100%" @row-click="showDetail">
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="table-expand">
@@ -80,8 +80,8 @@
           </template>
         </el-table-column>
       </el-table>
-    </div>-->
-    <div class="paging" v-if="materialEntries.length">
+    </div>
+    <div class="paging" v-if="materialOuts.length">
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -95,12 +95,12 @@
       ></el-pagination>
     </div>
 
-    <MaterialOut :out-visible="outVisable" :out="currentOut" @out-close="outClose"></MaterialOut>
+    <!-- <MaterialOut :out-visible="outVisable" :out="currentOut" @out-close="outClose"></MaterialOut> -->
   </div>
 </template>
 
 <script>
-import MaterialOut from '@/components/common/MaterialOut.vue';
+// import MaterialOut from '@/components/common/MaterialOut.vue';
 
 const moment = require('moment-timezone')
 
@@ -108,7 +108,7 @@ export default {
   name: 'MaterialOut',
 
   components: {
-    MaterialOut
+    // MaterialOut
   },
 
   data () {
@@ -118,7 +118,7 @@ export default {
         keyword: '',
         status: ''
       },
-      materialEntries: [],
+      materialOuts: [],
       page: {
         currentPage: 1,
         pageSize: 1,
@@ -164,7 +164,7 @@ export default {
     searching (isNewSearch = true) {
       const { keyword, dateTime, status } = this.searchingForm
       if (isNewSearch) this.page.currentPage = 1
-      this.getMaterialEntries({
+      this.getMaterialOuts({
         status,
         keyword,
         start_time: dateTime[0],
@@ -191,7 +191,7 @@ export default {
     },
 
     // 数据统一处理函数
-    getMaterialEntries (params) {
+    getMaterialOuts (params) {
       const { pageSize, currentPage } = this.page
       const defaultParams = {
         limit: pageSize,
@@ -199,13 +199,13 @@ export default {
         embed: 'material'
       }
       this.$axios
-        .get('/material_entries', {
+        .get('/material_outs', {
           params: Object.assign(defaultParams, params)
         })
         .then(res => {
           const { data, meta } = res.data
           const { currentPage, pageSize } = this.page
-          this.materialEntries = data.map((item, index) => {
+          this.materialOuts = data.map((item, index) => {
             item.index = (currentPage - 1) * pageSize + index + 1
             item.no = item.no.split('-')[0]
             item.created_at = moment
@@ -215,6 +215,9 @@ export default {
           })
           this.page.total = meta.count
         })
+        .catch(() => {
+          this.$message.error('出库单列表获取失败')
+        })
     },
     printer (targetElement) {
       window.jQuery(targetElement).printThis()
@@ -222,7 +225,7 @@ export default {
   },
 
   created () {
-    this.getMaterialEntries()
+    this.getMaterialOuts()
   }
 }
 </script>
