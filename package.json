@@ -16,6 +16,7 @@
     "moment-timezone": "^0.5.23",
     "printthis": "^0.1.5",
     "vue": "^2.5.21",
+    "vue-echarts": "^3.1.3",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"
   },

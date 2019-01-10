@@ -11,17 +11,18 @@
           text-color="#fff"
           active-text-color="#ffd04b"
         >
-          <el-submenu index="1">
+          <el-menu-item index="1">首页</el-menu-item>
+          <el-submenu index="2">
             <template slot="title">原材料管理</template>
-            <el-menu-item index="1-1">原材料管理</el-menu-item>
-            <el-menu-item index="1-2">入库单管理</el-menu-item>
-            <el-menu-item index="1-3">出库单管理</el-menu-item>
+            <el-menu-item index="2-1">原材料管理</el-menu-item>
+            <el-menu-item index="2-2">入库单管理</el-menu-item>
+            <el-menu-item index="2-3">出库单管理</el-menu-item>
           </el-submenu>
-          <el-menu-item index="2" disabled>成品管理</el-menu-item>
-          <el-menu-item index="3" disabled>废料管理</el-menu-item>
-          <el-menu-item index="4" disabled>订单管理</el-menu-item>
-          <el-menu-item index="5" disabled>供应商管理</el-menu-item>
-          <el-menu-item index="6" disabled>人员管理</el-menu-item>
+          <el-menu-item index="3" disabled>成品管理</el-menu-item>
+          <el-menu-item index="4" disabled>废料管理</el-menu-item>
+          <el-menu-item index="5" disabled>订单管理</el-menu-item>
+          <el-menu-item index="6" disabled>供应商管理</el-menu-item>
+          <el-menu-item index="7" disabled>人员管理</el-menu-item>
         </el-menu>
       </el-row>
       <div class="logout">
@@ -35,7 +36,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Header',
@@ -44,7 +45,7 @@ export default {
   },
   data () {
     return {
-      activeIndex: '1-1'
+      activeIndex: '1'
     }
   },
   computed: {
@@ -55,33 +56,36 @@ export default {
   methods: {
     rotuteTo (key, keyPath) {
       switch (key) {
-        case '1-1':
+        case '1':
+          this.$router.push('/')
+          break
+        case '2-1':
           this.$router.push('/material')
-          break;
-        case '1-2':
+          break
+        case '2-2':
           this.$router.push('/material/entry')
-          break;
-        case '1-3':
+          break
+        case '3-3':
           this.$router.push('/material/out')
-          break;
-        case 2:
-          this.$router.push('/product')
-          break;
+          break
         case 3:
-          this.$router.push('/wasted')
-          break;
+          this.$router.push('/product')
+          break
         case 4:
-          this.$router.push('/order')
-          break;
+          this.$router.push('/wasted')
+          break
         case 5:
-          this.$router.push('/cooperator')
-          break;
+          this.$router.push('/order')
+          break
         case 6:
+          this.$router.push('/cooperator')
+          break
+        case 7:
           this.$router.push('/user')
-          break;
+          break
         default:
           this.$router.push('/material')
-          break;
+          break
       }
     },
     logout () {

@@ -79,7 +79,7 @@ export default {
               const userInfo = Object.assign(res.data.data, res.data.meta)
               this.$store.dispatch('user/updateUser', userInfo)
               window.localStorage.setItem('user', JSON.stringify(userInfo))
-              this.$router.push('/material')
+              this.$router.push('/')
             })
             .catch(err => {
               if (err.request && err.request.status === 400) {

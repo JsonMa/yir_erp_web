@@ -5,6 +5,7 @@ import store from './store'
 import Material from './pages/material/Material.vue'
 import MaterialEntry from './pages/material/MaterialEntry.vue'
 import MaterialOut from './pages/material/MaterialOut.vue'
+import Dashboard from './pages/dashboard/Dashboard.vue'
 import Out from './components/common/MaterialOut.vue'
 import Login from './pages/login/Login.vue'
 
@@ -20,8 +21,8 @@ const router = new Router({
   base: process.env.BASE_URL,
   routes: [{
     path: '/',
-    name: 'material',
-    component: Out
+    name: 'dashboard',
+    component: Dashboard
   },
   {
     path: '/material',
