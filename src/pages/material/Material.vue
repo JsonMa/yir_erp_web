@@ -116,9 +116,9 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="标价" prop="marked_price">
+        <!-- <el-form-item label="标价" prop="marked_price">
           <el-input v-model="materialForm.marked_price"></el-input>
-        </el-form-item>
+        </el-form-item>-->
         <!-- <el-form-item label="图片" prop="image">
           <el-input v-model="materialForm.image"></el-input>
         </el-form-item>-->
@@ -258,7 +258,7 @@ export default {
       window.jQuery(targetElement).printThis()
     },
     editMaterial (index, row) {
-      this.materialDialogTitle = '修改原材料'
+      this.materialDialogTitle = '修改原材料';
       this.showDialog = true
       this.materialForm = row
     },
@@ -293,7 +293,7 @@ export default {
         })
     },
     addMaterial () {
-      this.materialDialogTitle = '新增原材料'
+      this.materialDialogTitle = '新增原材料';
       this.showDialog = true
     },
     saveMaterial () {},
@@ -301,14 +301,14 @@ export default {
       this.showDialog = false
     },
     submitMaterialForm (form) {
-      let url = '/materials'
-      let method = 'post'
+      let url = '/materials';
+      let method = 'post';
       const formData = this[form]
       const isUpdate = !!formData._id
 
       if (isUpdate) {
         url = `/materials/${formData._id}`
-        method = 'patch'
+        method = 'patch';
         formData.category = formData.category._id
         formData.supplier = formData.supplier._id
         delete formData.enable
@@ -320,6 +320,7 @@ export default {
         delete formData.__v
         delete formData._id
         delete formData.left_num
+        delete formData.marked_price
       }
       this.$refs[form].validate(valid => {
         if (valid) {

@@ -38,6 +38,9 @@
         <el-form-item>
           <el-button type="primary" @click="searching" icon="el-icon-search">搜索</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="addMaterialEntry">新增</el-button>
+        </el-form-item>
       </el-form>
     </div>
 
@@ -100,12 +103,12 @@
       ></el-pagination>
     </div>
 
-    <MaterialEntry :entry-visible="entryVisable" :entry="currentEntry" @entry-close="entryClose"></MaterialEntry>
+    <!-- <MaterialEntry :entry-visible="entryVisable" :entry="currentEntry" @entry-close="entryClose"></MaterialEntry> -->
   </div>
 </template>
 
 <script>
-import MaterialEntry from '@/components/common/MaterialEntry.vue'
+// import MaterialEntry from '@/components/common/MaterialEntry.vue';
 
 const moment = require('moment-timezone')
 
@@ -113,7 +116,7 @@ export default {
   name: 'MaterialEntry',
 
   components: {
-    MaterialEntry
+    // MaterialEntry
   },
 
   data () {
@@ -126,7 +129,7 @@ export default {
       materialEntries: [],
       page: {
         currentPage: 1,
-        pageSize: 1,
+        pageSize: 10,
         total: 0
       },
       dateTimeOptions: {
@@ -176,6 +179,7 @@ export default {
         end_time: dateTime[1]
       })
     },
+    addMaterialEntry () {},
 
     // 打开entry详情
     showDetail (row) {
@@ -227,7 +231,7 @@ export default {
   },
 
   created () {
-    // this.getMaterialEntries()
+    this.getMaterialEntries()
   }
 }
 </script>
@@ -250,7 +254,7 @@ export default {
     padding-top: 20px;
     .keyword {
       .el-input__inner {
-        width: 454px;
+        width: 441px;
       }
     }
     .materil-entry-status {
@@ -262,8 +266,8 @@ export default {
     }
   }
   .paging {
+    padding: 20px 0;
     .paging-item {
-      margin-top: 20px;
       text-align: center;
     }
   }

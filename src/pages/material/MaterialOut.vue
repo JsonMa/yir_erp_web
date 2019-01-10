@@ -34,6 +34,9 @@
         <el-form-item>
           <el-button type="primary" @click="searching" icon="el-icon-search">搜索</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="addMaterialOut">新增</el-button>
+        </el-form-item>
       </el-form>
     </div>
 
@@ -41,10 +44,10 @@
       <el-table :data="materialOuts" style="width: 100%" @row-click="showDetail">
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
         <el-table-column label="出库单编号" prop="no"></el-table-column>
+        <el-table-column label="申请者" prop="applicant.name"></el-table-column>
         <el-table-column label="原因" prop="reason"></el-table-column>
         <el-table-column label="总数量" prop="total_count"></el-table-column>
         <el-table-column label="制作者" prop="maker.name"></el-table-column>
-        <el-table-column label="申请者" prop="applicant.name"></el-table-column>
         <el-table-column label="审核状态" prop="status"></el-table-column>
         <el-table-column label="创建时间" prop="created_at" width="80px"></el-table-column>
         <el-table-column label="操作" width="200px">
@@ -195,7 +198,8 @@ export default {
     },
     printer (targetElement) {
       window.jQuery(targetElement).printThis()
-    }
+    },
+    addMaterialOut () {}
   },
 
   created () {
@@ -222,7 +226,7 @@ export default {
     padding-top: 20px;
     .keyword {
       .el-input__inner {
-        width: 454px;
+        width: 441px;
       }
     }
     .materil-out-status {

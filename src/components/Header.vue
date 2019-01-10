@@ -21,8 +21,9 @@
           <el-menu-item index="3" disabled>成品管理</el-menu-item>
           <el-menu-item index="4" disabled>废料管理</el-menu-item>
           <el-menu-item index="5" disabled>订单管理</el-menu-item>
-          <el-menu-item index="6" disabled>供应商管理</el-menu-item>
-          <el-menu-item index="7" disabled>人员管理</el-menu-item>
+          <el-menu-item index="6" disabled>分类管理</el-menu-item>
+          <el-menu-item index="7" disabled>合作伙伴管理</el-menu-item>
+          <el-menu-item index="8" disabled>人员管理</el-menu-item>
         </el-menu>
       </el-row>
       <div class="logout">
@@ -36,7 +37,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Header',
@@ -58,34 +59,37 @@ export default {
       switch (key) {
         case '1':
           this.$router.push('/')
-          break
+          break;
         case '2-1':
           this.$router.push('/material')
-          break
+          break;
         case '2-2':
           this.$router.push('/material/entry')
-          break
-        case '3-3':
+          break;
+        case '2-3':
           this.$router.push('/material/out')
-          break
+          break;
         case 3:
           this.$router.push('/product')
-          break
+          break;
         case 4:
           this.$router.push('/wasted')
-          break
+          break;
         case 5:
           this.$router.push('/order')
-          break
+          break;
         case 6:
-          this.$router.push('/cooperator')
-          break
+          this.$router.push('/category')
+          break;
         case 7:
+          this.$router.push('/cooperator')
+          break;
+        case 8:
           this.$router.push('/user')
-          break
+          break;
         default:
-          this.$router.push('/material')
-          break
+          this.$router.push('/')
+          break;
       }
     },
     logout () {
