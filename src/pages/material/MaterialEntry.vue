@@ -72,7 +72,7 @@
         <el-table-column label="材料名称" prop="material.name"></el-table-column>
         <el-table-column label="型号" prop="material.model"></el-table-column>
         <el-table-column label="入库数量" prop="real_count"></el-table-column>
-        <el-table-column label="单位" prop="unit"></el-table-column>
+        <el-table-column label="单位" prop="material.unit"></el-table-column>
         <el-table-column label="入库金额" prop="total_price"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
         <el-table-column label="制单人" prop="maker.name" width="80px"></el-table-column>

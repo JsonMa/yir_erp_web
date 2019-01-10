@@ -37,14 +37,14 @@
     </div>
 
     <div class="materials">
-      <el-table :data="materials" style="width: 100%">
+      <el-table :data="materials" style="width: 100%" v-loading="tableLoading">
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
         <el-table-column label="材料编号" prop="no"></el-table-column>
         <el-table-column label="材料名称" prop="name"></el-table-column>
         <el-table-column label="所属分类" prop="category.name"></el-table-column>
         <el-table-column label="供应商" prop="supplier.name"></el-table-column>
         <el-table-column label="材料型号" prop="model"></el-table-column>
-        <el-table-column label="库存数量" prop="left_count"></el-table-column>
+        <el-table-column label="库存数量" prop="left_num"></el-table-column>
         <el-table-column label="单位" prop="unit"></el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
@@ -69,7 +69,7 @@
     </div>
 
     <el-dialog
-      title="新增材料"
+      :title="materialDialogTitle"
       :visible.sync="showDialog"
       width="30%"
       :before-close="resetMaterialForm"
@@ -92,6 +92,9 @@
         </el-form-item>
         <el-form-item label="规格" prop="specific">
           <el-input v-model="materialForm.specific"></el-input>
+        </el-form-item>
+        <el-form-item label="单位" prop="unit">
+          <el-input v-model="materialForm.unit"></el-input>
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-select v-model="materialForm.category" placeholder="请选择材料分类">
@@ -116,43 +119,17 @@
         <el-form-item label="标价" prop="marked_price">
           <el-input v-model="materialForm.marked_price"></el-input>
         </el-form-item>
-        <el-form-item label="图片" prop="image">
+        <!-- <el-form-item label="图片" prop="image">
           <el-input v-model="materialForm.image"></el-input>
-        </el-form-item>
+        </el-form-item>-->
         <el-form-item label="备注" prop="remark">
           <el-input v-model="materialForm.remark"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button @click="cancleSubmit">取消</el-button>
-          <el-button type="primary" @click="submitMaterialForm">保存</el-button>
+          <el-button type="primary" @click="submitMaterialForm('materialForm')">保存</el-button>
         </el-form-item>
-
-        <!-- <el-form-item label="活动性质" prop="type">
-          <el-checkbox-group v-model="ruleForm.type">
-            <el-checkbox label="美食/餐厅线上活动" name="type"></el-checkbox>
-            <el-checkbox label="地推活动" name="type"></el-checkbox>
-            <el-checkbox label="线下主题活动" name="type"></el-checkbox>
-            <el-checkbox label="单纯品牌曝光" name="type"></el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-        <el-form-item label="特殊资源" prop="resource">
-          <el-radio-group v-model="ruleForm.resource">
-            <el-radio label="线上品牌商赞助"></el-radio>
-            <el-radio label="线下场地免费"></el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="活动形式" prop="desc">
-          <el-input type="textarea" v-model="ruleForm.desc"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-          <el-button @click="resetForm('ruleForm')">重置</el-button>
-        </el-form-item>-->
       </el-form>
-      <!-- <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-      </span>-->
     </el-dialog>
   </div>
 </template>
@@ -160,13 +137,13 @@
 <script>
 export default {
   name: 'Material',
-
   data () {
     return {
       searchingForm: {
         keyword: '',
         categoryId: ''
       },
+      materialDialogTitle: '',
       materialForm: {
         no: '',
         name: '',
@@ -174,32 +151,37 @@ export default {
         model: '',
         supplier: '',
         category: '',
-        marked_price: '',
-        image: '',
-        remark: ''
+        marked_price: 0,
+        // image: '',
+        remark: '',
+        unit: ''
       },
-      materialRules: {},
-      materials: [
-        {
-          index: 1,
-          no: 'XZ-ADV',
-          name: '单端面密封',
-          model: '1000*100',
-          left_count: 20,
-          supplier: { name: '无锡博格曼密封件有限公司' },
-          category: { name: '密封' },
-          unit: '件'
-        }
-      ],
+      materialRules: {
+        no: [{ required: true, message: '材料代号为必填', trigger: 'blur' }],
+        name: [{ required: true, message: '材料名称为必填', trigger: 'blur' }],
+        specific: [
+          { required: true, message: '材料规格为必填', trigger: 'blur' }
+        ],
+        model: [{ required: true, message: '材料型号为必填', trigger: 'blur' }],
+        supplier: [
+          { required: true, message: '供应商为必填', trigger: 'blur' }
+        ],
+        category: [
+          { required: true, message: '材料分类为必填', trigger: 'blur' }
+        ],
+        unit: [{ required: true, message: '材料单位为必填', trigger: 'blur' }]
+      },
+      materials: [],
       categories: [],
       suppliers: [],
       page: {
         currentPage: 1,
-        pageSize: 1,
+        pageSize: 10,
         total: 1
       },
       currentMaterial: {},
-      showDialog: false
+      showDialog: false,
+      tableLoading: true
     }
   },
 
@@ -236,6 +218,7 @@ export default {
             return item
           })
           this.page.total = meta.count
+          this.tableLoading = false
         })
         .catch(() => {
           this.$message.error('原材料接口调用失败')
@@ -245,39 +228,137 @@ export default {
       this.$axios
         .get('/categories', {
           params: {
-            type: 'MATERIAL'
+            type: 'MATERIAL',
+            limit: 10000
           }
         })
         .then(res => {
-          this.materials = res.data.data
+          this.categories = res.data.data
         })
         .catch(() => {
           this.$message.error('原材料类型接口调用失败')
         })
     },
+    getSuppliers () {
+      this.$axios
+        .get('/cooperators', {
+          params: {
+            limit: 10000,
+            type: 'SUPPLIER'
+          }
+        })
+        .then(res => {
+          this.suppliers = res.data.data
+        })
+        .catch(() => {
+          this.$message.error('供应商接口调用失败')
+        })
+    },
     printer (targetElement) {
       window.jQuery(targetElement).printThis()
     },
-    editMaterial () {},
-    deleteMaterial () {},
+    editMaterial (index, row) {
+      this.materialDialogTitle = '修改原材料'
+      this.showDialog = true
+      this.materialForm = row
+    },
+    deleteMaterial (index, row) {
+      this.$confirm('此操作将永久删除该原材料, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.$axios
+            .delete(`/materials/${row._id}`)
+            .then(res => {
+              this.$message.success({
+                message: '删除材料成功',
+                duration: 1500,
+                onClose: () => {
+                  this.showDialog = false
+                  this.searching(true)
+                }
+              })
+            })
+            .catch(() => {
+              this.$message.error('删除材料接口调用失败')
+            })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
     addMaterial () {
+      this.materialDialogTitle = '新增原材料'
       this.showDialog = true
     },
     saveMaterial () {},
     resetMaterialForm () {
       this.showDialog = false
     },
-    submitMaterialForm () {
-      this.showDialog = false
+    submitMaterialForm (form) {
+      let url = '/materials'
+      let method = 'post'
+      const formData = this[form]
+      const isUpdate = !!formData._id
+
+      if (isUpdate) {
+        url = `/materials/${formData._id}`
+        method = 'patch'
+        formData.category = formData.category._id
+        formData.supplier = formData.supplier._id
+        delete formData.enable
+        delete formData.index
+        delete formData.created_at
+        delete formData.updated_at
+        delete formData.wasted_num
+        delete formData.total_num
+        delete formData.__v
+        delete formData._id
+        delete formData.left_num
+      }
+      this.$refs[form].validate(valid => {
+        if (valid) {
+          this.$axios
+            .request({
+              url,
+              method,
+              data: formData
+            })
+            .then(res => {
+              // 刷新列表
+              this.$message.success({
+                message: isUpdate ? '修改材料成功' : '新增材料成功',
+                duration: 1500,
+                onClose: () => {
+                  this.showDialog = false
+                  this.searching(true)
+                }
+              })
+            })
+            .catch(err => {
+              if (err.request && err.request.status === 400) {
+                this.$message.error('参数错误')
+              } else this.$message.error('接口请求失败')
+            })
+        } else {
+          return false
+        }
+      })
     },
     cancleSubmit () {
       this.showDialog = false
     }
   },
 
-  created () {
+  mounted () {
     this.getCategories()
     this.getMaterials()
+    this.getSuppliers()
   }
 }
 </script>
@@ -299,8 +380,8 @@ export default {
     }
   }
   .material-paging {
+    padding: 20px 0;
     .paging-item {
-      margin-top: 20px;
       text-align: center;
     }
   }

@@ -48,16 +48,16 @@ const router = new Router({
   ]
 })
 
-// router.beforeEach((to, from, next) => {
-//   if (['/login'].includes(to.path)) {
-//     store.dispatch('navigator/updateNavigator', '/login')
-//     next()
-//   } else {
-//     if (isLogin()) {
-//       store.dispatch('navigator/updateNavigator', to.path)
-//       next()
-//     } else next('/login')
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  if (['/login'].includes(to.path)) {
+    store.dispatch('navigator/updateNavigator', '/login')
+    next()
+  } else {
+    if (isLogin()) {
+      store.dispatch('navigator/updateNavigator', to.path)
+      next()
+    } else next('/login')
+  }
+})
 
 export default router
