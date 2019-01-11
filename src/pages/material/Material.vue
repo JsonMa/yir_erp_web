@@ -44,7 +44,8 @@
         <el-table-column label="所属分类" prop="category.name"></el-table-column>
         <el-table-column label="供应商" prop="supplier.name"></el-table-column>
         <el-table-column label="材料型号" prop="model"></el-table-column>
-        <el-table-column label="库存数量" prop="left_num"></el-table-column>
+        <el-table-column label="完整品数量" prop="left_num"></el-table-column>
+        <el-table-column label="废品数量" prop="wasted_num"></el-table-column>
         <el-table-column label="单位" prop="unit"></el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
