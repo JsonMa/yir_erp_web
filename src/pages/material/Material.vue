@@ -204,7 +204,7 @@ export default {
       }
       this.$axios
         .get('/materials', {
-          params: Object.assign(defaultParams, params)
+          params: Object.assign(defaultParams, this.$route.params, params)
         })
         .then(res => {
           const { data, meta } = res.data
