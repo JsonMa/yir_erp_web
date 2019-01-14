@@ -43,13 +43,13 @@
     <div class="material-outs">
       <el-table :data="materialOuts" style="width: 100%" @row-click="showDetail">
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
-        <el-table-column label="出库单编号" prop="no"></el-table-column>
-        <el-table-column label="申请者" prop="applicant.name"></el-table-column>
-        <el-table-column label="原因" prop="reason"></el-table-column>
-        <el-table-column label="总数量" prop="total_count"></el-table-column>
-        <el-table-column label="制作者" prop="maker.name"></el-table-column>
-        <el-table-column label="审核状态" prop="status"></el-table-column>
-        <el-table-column label="创建时间" prop="created_at" width="80px"></el-table-column>
+        <el-table-column label="出库单编号" prop="no" width="100px"></el-table-column>
+        <el-table-column label="申请者" prop="applicant.name" width="80px"></el-table-column>
+        <el-table-column label="原因" prop="reason" width="80px"></el-table-column>
+        <el-table-column label="总数量" prop="total_count" width="80px"></el-table-column>
+        <el-table-column label="制作者" prop="maker.name" width="80px"></el-table-column>
+        <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
+        <el-table-column label="创建时间" prop="created_at"></el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
             <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
@@ -72,22 +72,74 @@
       ></el-pagination>
     </div>
 
-    <!-- <MaterialOut :out-visible="outVisable" :out="currentOut" @out-close="outClose"></MaterialOut> -->
+    <div class="material-out-detail">
+      <el-dialog title="出库单" :visible.sync="outVisiable" @close="outClose">
+        <el-row class="material-out-printer">
+          <el-button type="primary" size="small" @click="printer">打印</el-button>
+        </el-row>
+        <div class="material-out-container">
+          <div class="material-out-remark">
+            <h2 class="material-out-remark-title">出库单</h2>
+            <p class="material-out-remark-subtitle">一式三联，1库房2财务3领料人</p>
+          </div>
+          <div class="material-out-caption">
+            <div class="material-out-caption">
+              <p
+                class="material-out-caption-department"
+              >领料部门：{{currentOut.applicant.department.name}}</p>
+              <p class="material-out-caption-application">领料人：{{currentOut.applicant.name}}</p>
+              <p class="material-out-caption-date">出库单日期：{{currentOut.created_at}}</p>
+              <p class="material-out-caption-no">出库单编号：{{currentOut.no}}</p>
+            </div>
+          </div>
+          <table class="material-out-table" border="1">
+            <tr>
+              <th class="material-out-item-smaller">序号</th>
+              <th class="material-out-item-middle">材料编码</th>
+              <th class="material-out-item-middle">材料名称</th>
+              <th class="material-out-item-middle">规格型号</th>
+              <th class="material-out-item-smaller">单位</th>
+              <th class="material-out-item-middle">厂家</th>
+              <th class="material-out-item-smaller">库存数</th>
+              <th class="material-out-item-smaller">出库数</th>
+              <th class="material-out-item-middle">用途</th>
+              <th class="material-out-item-middle">备注</th>
+            </tr>
+            <tr v-for="out in currentOut.materials" :key="out.index">
+              <td>{{out.index}}</td>
+              <td>{{out.material.no}}</td>
+              <td>{{out.material.name}}</td>
+              <td>{{out.material.model}}</td>
+              <td>{{out.material.unit}}</td>
+              <td>{{out.material.supplier.name}}</td>
+              <td>{{out.material.left_num}}</td>
+              <td>{{out.count}}</td>
+              <td>{{out.order || '无'}}</td>
+              <td>{{out.remark || '无'}}</td>
+            </tr>
+            <tr>
+              <td colspan="6">合计：</td>
+              <td>{{currentOut.totalLeft}}</td>
+              <td>{{currentOut.total_count}}</td>
+              <td colspan="2"></td>
+            </tr>
+          </table>
+          <div class="material-out-sign">
+            <p>制作人：{{currentOut.maker.name}}</p>
+            <p>库管：{{currentOut.reviewer ? currentOut.reviewer.name : '无'}}</p>
+            <p>财务：{{currentOut.financor ? currentOut.financor.name : '无'}}</p>
+          </div>
+        </div>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
-// import MaterialOut from '@/components/common/MaterialOut.vue';
-
 const moment = require('moment-timezone')
 
 export default {
   name: 'MaterialOut',
-
-  components: {
-    // MaterialOut
-  },
-
   data () {
     return {
       searchingForm: {
@@ -132,8 +184,45 @@ export default {
           }
         ]
       },
-      currentOut: {},
-      outVisable: false
+      currentOut: {
+        materials: [
+          {
+            index: 1,
+            material: {
+              no: 'XZ-MDE-12',
+              name: '双端面密封',
+              count: 30,
+              left_count: 40,
+              unit: '件',
+              model: '200x100',
+              supplier: {
+                name: '江苏海事电机有限公司'
+              }
+            },
+            order: '江西石化煤改气订单',
+            remark: '加急'
+          }
+        ],
+        total: 40,
+        applicant: {
+          department: '生产部',
+          name: '马妮妮'
+        },
+        no: '29183333112932',
+        total_count: 40,
+        left_total_count: 40,
+        cerated_at: '2019-12-11 06:08:22',
+        maker: {
+          name: '蒋欣'
+        },
+        reviewer: {
+          name: '杜艳'
+        },
+        financor: {
+          name: '谭明'
+        }
+      },
+      outVisiable: false
     }
   },
 
@@ -151,13 +240,19 @@ export default {
 
     // 打开出库单详情
     showDetail (row) {
-      this.outVisable = true
+      let totalLeft = 0
+      row.materials.forEach((item, index) => {
+        item.index = index + 1
+        totalLeft += item.material.left_num
+      })
+      row.totalLeft = totalLeft
+      this.outVisiable = true
       this.currentOut = row
     },
 
     // 关闭出库详情
     outClose () {
-      this.outVisable = false
+      this.outVisiable = false
     },
 
     handleSizeChange () {},
@@ -173,7 +268,7 @@ export default {
       const defaultParams = {
         limit: pageSize,
         offset: pageSize * (currentPage - 1),
-        embed: 'material'
+        embed: 'material,department'
       }
       this.$axios
         .get('/material_outs', {
@@ -196,8 +291,11 @@ export default {
           this.$message.error('出库单列表获取失败')
         })
     },
-    printer (targetElement) {
-      window.jQuery(targetElement).printThis()
+    printer () {
+      window.jQuery('.material-out-container').printThis({
+        importCSS: true,
+        importStyle: true
+      })
     },
     addMaterialOut () {}
   },
@@ -220,6 +318,12 @@ export default {
       margin-right: 0;
       margin-bottom: 0;
       width: 50%;
+    }
+  }
+  .material-outs {
+    .el-table th,
+    .el-table tr {
+      cursor: pointer;
     }
   }
   .searching {
@@ -245,6 +349,82 @@ export default {
   }
   .breadcrumb {
     padding: 20px 0 0 0;
+  }
+
+  // 出库单详情
+  .material-out-detail {
+    .el-dialog {
+      min-width: 960px;
+    }
+    .el-dialog__body {
+      padding: 0px 20px 70px 20px;
+    }
+    .material-out-printer {
+      padding: 10px 0 0 0;
+      text-align: right;
+    }
+  }
+
+  .material-out-container {
+    text-align: center;
+    .material-out-remark {
+      margin: 10px 0;
+      .material-out-remark-title {
+        font-size: 24px;
+        padding: 10px 0;
+      }
+    }
+    .material-out-caption {
+      font-size: 16px;
+      font-weight: boild;
+      padding-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row;
+      p {
+        margin-right: 10px;
+        text-align: left;
+      }
+      .material-out-caption-department {
+        width: 165px;
+      }
+      .material-out-caption-application {
+        width: 150px;
+      }
+      .material-out-caption-date {
+        width: 285px;
+      }
+      .material-out-caption-no {
+        width: 260px;
+      }
+    }
+    .material-out-table {
+      td,
+      th {
+        padding: 10px 5px;
+        text-align: center;
+      }
+      .material-out-item-smaller {
+        width: 50px;
+      }
+      .material-out-item-middle {
+        width: 100px;
+      }
+      min-width: 920px;
+      border: 1px solid silver;
+      .material-out-item-title {
+        font-weight: bold;
+      }
+    }
+    .material-out-sign {
+      padding-top: 15px;
+      width: 80%;
+      margin: 0 auto;
+      p {
+        width: 33%;
+        display: inline-block;
+      }
+    }
   }
 }
 </style>

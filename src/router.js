@@ -6,7 +6,6 @@ import Material from './pages/material/Material.vue'
 import MaterialEntry from './pages/material/MaterialEntry.vue'
 import MaterialOut from './pages/material/MaterialOut.vue'
 import Dashboard from './pages/dashboard/Dashboard.vue'
-import Out from './components/common/MaterialOut.vue'
 import Login from './pages/login/Login.vue'
 
 Vue.use(Router)
