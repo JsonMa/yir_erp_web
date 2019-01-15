@@ -132,6 +132,70 @@
         </div>
       </el-dialog>
     </div>
+
+    <div class="material-out-add">
+      <el-dialog
+        :title="materialOutDialogTitle"
+        :visible.sync="showAddDialog"
+        width="30%"
+        :before-close="closeMaterialOutForm"
+      >
+        <el-form
+          :model="materialOutForm"
+          :rules="materialRules"
+          ref="materialForm"
+          label-width="100px"
+          class="material-dialog"
+          inline="false"
+          label-position="right"
+        >
+          <el-form-item
+            label="原因"
+            prop="reason"
+            :rules="{required: true, message: '原因不能为空', trigger: 'blur'}"
+          >
+            <el-input v-model="materialOutForm.reason"></el-input>
+          </el-form-item>
+          <el-form-item
+            v-for="(item, index) in materialOutForm.materials"
+            :label="`材料${index + 1}`"
+            :key="index"
+            :prop="'domains.' + index + '.value'"
+            :rules="{required: true, message: '域名不能为空', trigger: 'blur'}"
+            class="out-form-container"
+          >
+            <el-select
+              v-model="item.material"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入材料关键词"
+              :remote-method="queryMaterials"
+              :loading="loading"
+              class="out-material out-form-item"
+            >
+              <el-option
+                v-for="material in materials"
+                :key="material.no"
+                :label="`${material.no}:${material.name}`"
+                :value="material._id"
+              ></el-option>
+            </el-select>
+            <el-input class="out-count out-form-item" v-model="item.count" placeholder="申请数量"></el-input>
+            <el-input class="out-order out-form-item" v-model="item.order" placeholder="用于订单"></el-input>
+            <el-input class="out-remark out-form-item" v-model="item.remark" placeholder="备注"></el-input>
+            <el-button @click.prevent="removeMaterial(material)">删除</el-button>
+          </el-form-item>
+          <el-form-item label="总数" prop="reason">
+            <el-input v-model="materialOutForm.total_count" disabled></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="cancleOutSubmit">取消</el-button>
+            <el-button type="primary" @click="submitMaterialOutForm('materialForm')">保存</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -189,40 +253,52 @@ export default {
           {
             index: 1,
             material: {
-              no: 'XZ-MDE-12',
-              name: '双端面密封',
-              count: 30,
-              left_count: 40,
-              unit: '件',
-              model: '200x100',
+              no: '',
+              name: '',
+              count: 0,
+              left_count: 0,
+              unit: '',
+              model: '',
               supplier: {
-                name: '江苏海事电机有限公司'
+                name: ''
               }
             },
-            order: '江西石化煤改气订单',
-            remark: '加急'
+            order: '',
+            remark: ''
           }
         ],
-        total: 40,
+        total: 0,
         applicant: {
-          department: '生产部',
-          name: '马妮妮'
+          department: '',
+          name: ''
         },
-        no: '29183333112932',
-        total_count: 40,
-        left_total_count: 40,
-        cerated_at: '2019-12-11 06:08:22',
+        no: '',
+        total_count: 0,
+        left_total_count: 0,
+        cerated_at: '',
         maker: {
-          name: '蒋欣'
+          name: ''
         },
         reviewer: {
-          name: '杜艳'
-        },
-        financor: {
-          name: '谭明'
+          name: ''
         }
       },
-      outVisiable: false
+      outVisiable: false,
+      showAddDialog: false,
+      materialOutForm: {
+        reason: '',
+        total_count: 0,
+        materials: [
+          {
+            material: '',
+            count: '',
+            remark: '',
+            order: ''
+          }
+        ]
+      },
+      materials: [],
+      loading: false
     }
   },
 
@@ -250,7 +326,6 @@ export default {
       this.currentOut = row
     },
 
-    // 关闭出库详情
     outClose () {
       this.outVisiable = false
     },
@@ -297,7 +372,40 @@ export default {
         importStyle: true
       })
     },
-    addMaterialOut () {}
+    addMaterialOut () {
+      this.showAddDialog = true
+    },
+    closeMaterialOutForm () {
+      this.showAddDialog = false
+    },
+    submitMaterialOutForm () {},
+    cancleOutSubmit () {},
+    removeMaterial (materil) {},
+    queryMaterials (query) {
+      this.loading = true
+      const defaultParams = {
+        limit: 1000,
+        offset: 0,
+        embed: 'material'
+      }
+      this.$axios
+        .get('/materials', {
+          params: Object.assign(defaultParams, query)
+        })
+        .then(res => {
+          const { data } = res.data
+          const { currentPage, pageSize } = this.page
+          this.materials = data.map((item, index) => {
+            item.index = (currentPage - 1) * pageSize + index + 1
+            item.no = item.no.split('-')[0]
+            return item
+          })
+          this.loading = false
+        })
+        .catch(() => {
+          this.$message.error('原材料接口调用失败')
+        })
+    }
   },
 
   created () {
@@ -424,6 +532,23 @@ export default {
         width: 33%;
         display: inline-block;
       }
+    }
+  }
+  .out-form-container {
+    .el-form-item__content {
+      width: 400px;
+    }
+    .out-count,
+    .out-remark,
+    .out-order {
+      width: 160px;
+      padding: 5px 10px;
+    }
+    .out-order {
+      padding-left: 0;
+    }
+    .out-count {
+      width: 183px;
     }
   }
 }
