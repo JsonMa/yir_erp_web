@@ -74,7 +74,7 @@
               size="mini"
               @click="editOut(scope.row)"
               v-if="['UNREVIEW', 'REJECTED'].includes(scope.row.status)"
-            >{{scope.row.status === 'UNREVIEW' ? '修改': '修改并从新审核'}}</el-button>
+            >{{scope.row.status === 'UNREVIEW' ? '修改': '重新提交'}}</el-button>
             <el-button
               size="mini"
               type="danger"
