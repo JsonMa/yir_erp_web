@@ -72,6 +72,7 @@
       ></el-pagination>
     </div>
 
+    <!-- 材料出库单详情 -->
     <div class="material-out-detail">
       <el-dialog title="出库单" :visible.sync="outVisiable" @close="outClose">
         <el-row class="material-out-printer">
@@ -133,6 +134,7 @@
       </el-dialog>
     </div>
 
+    <!-- 新增出库单 -->
     <div class="material-out-add">
       <el-dialog
         :title="materialOutDialogTitle"
@@ -142,27 +144,48 @@
       >
         <el-form
           :model="materialOutForm"
-          :rules="materialRules"
-          ref="materialForm"
+          ref="materialOutForm"
           label-width="100px"
           class="material-dialog"
-          inline="false"
           label-position="right"
         >
           <el-form-item
+            label="申请人"
+            :prop="applicant"
+            :rules="{required: true, message: '领料人不能为空', trigger: 'blur'}"
+          >
+            <el-select
+              v-model="materialOutForm.applicant"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入领料人关键词"
+              :remote-method="queryAccounts"
+              :loading="accountLoading"
+              class="out-applicant"
+            >
+              <el-option
+                v-for="(account, index) in accounts"
+                :key="index"
+                :label="`${account.department.name}:${account.name}`"
+                :value="account._id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item
             label="原因"
             prop="reason"
-            :rules="{required: true, message: '原因不能为空', trigger: 'blur'}"
+            :rules="{required: true, message: '材料用途不能为空', trigger: 'blur'}"
           >
-            <el-input v-model="materialOutForm.reason"></el-input>
+            <el-input v-model="materialOutForm.reason" class="out-reason" placeholder="请输入材料用途"></el-input>
           </el-form-item>
           <el-form-item
             v-for="(item, index) in materialOutForm.materials"
             :label="`材料${index + 1}`"
             :key="index"
-            :prop="'domains.' + index + '.value'"
-            :rules="{required: true, message: '域名不能为空', trigger: 'blur'}"
-            class="out-form-container"
+            :prop="'materials.' + index + '.material'"
+            class="out-material-container"
+            :rules="{required: true, message: '材料信息不能为空', trigger: 'blur'}"
           >
             <el-select
               v-model="item.material"
@@ -175,23 +198,29 @@
               class="out-material out-form-item"
             >
               <el-option
-                v-for="material in materials"
-                :key="material.no"
+                v-for="(material, index) in materials"
+                :key="index"
                 :label="`${material.no}:${material.name}`"
                 :value="material._id"
               ></el-option>
             </el-select>
-            <el-input class="out-count out-form-item" v-model="item.count" placeholder="申请数量"></el-input>
+            <el-input
+              class="out-count out-form-item"
+              v-model="item.count"
+              placeholder="申请数量"
+              @blur="changeTotalCount(item)"
+            ></el-input>
             <el-input class="out-order out-form-item" v-model="item.order" placeholder="用于订单"></el-input>
             <el-input class="out-remark out-form-item" v-model="item.remark" placeholder="备注"></el-input>
-            <el-button @click.prevent="removeMaterial(material)">删除</el-button>
+            <el-button @click.prevent="removeMaterial(item)">删除</el-button>
           </el-form-item>
           <el-form-item label="总数" prop="reason">
-            <el-input v-model="materialOutForm.total_count" disabled></el-input>
+            <el-input v-model="materialOutForm.total_count" disabled class="out-total-count"></el-input>
           </el-form-item>
-          <el-form-item>
+          <el-form-item class="out-btn-container">
+            <el-button @click="addMaterial">新增材料</el-button>
             <el-button @click="cancleOutSubmit">取消</el-button>
-            <el-button type="primary" @click="submitMaterialOutForm('materialForm')">保存</el-button>
+            <el-button type="primary" @click="submitMaterialOutForm('materialOutForm')">保存</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -201,7 +230,7 @@
 
 <script>
 const moment = require('moment-timezone')
-
+const _ = require('underscore')
 export default {
   name: 'MaterialOut',
   data () {
@@ -288,6 +317,7 @@ export default {
       materialOutForm: {
         reason: '',
         total_count: 0,
+        applicant: '',
         materials: [
           {
             material: '',
@@ -298,7 +328,10 @@ export default {
         ]
       },
       materials: [],
-      loading: false
+      accounts: [],
+      loading: false,
+      accountLoading: false,
+      materialOutDialogTitle: ''
     }
   },
 
@@ -373,24 +406,76 @@ export default {
       })
     },
     addMaterialOut () {
+      this.materialOutDialogTitle = '新增材料出库单';
       this.showAddDialog = true
     },
     closeMaterialOutForm () {
       this.showAddDialog = false
     },
-    submitMaterialOutForm () {},
+    submitMaterialOutForm (form) {
+      let url = '/material_outs';
+      let method = 'post';
+      const formData = this[form]
+      formData.maker = JSON.parse(window.localStorage.getItem('user'))._id
+      const isUpdate = !!formData._id
+
+      if (isUpdate) {
+        url = `/materials/${formData._id}`
+        method = 'patch';
+        formData.category = formData.category._id
+        formData.supplier = formData.supplier._id
+        delete formData.enable
+        delete formData.index
+        delete formData.created_at
+        delete formData.updated_at
+        delete formData.wasted_num
+        delete formData.total_num
+        delete formData.__v
+        delete formData._id
+        delete formData.left_num
+        delete formData.marked_price
+      }
+      this.$refs[form].validate(valid => {
+        if (valid) {
+          this.$axios
+            .request({
+              url,
+              method,
+              data: formData
+            })
+            .then(res => {
+              // 刷新列表
+              this.$message.success({
+                message: isUpdate ? '修改材料出库单成功' : '新增材料出库单成功',
+                duration: 1500,
+                onClose: () => {
+                  this.showDialog = false
+                  this.searching(true)
+                }
+              })
+            })
+            .catch(err => {
+              if (err.request && err.request.status === 400) {
+                this.$message.error('参数错误')
+              } else this.$message.error('接口请求失败')
+            })
+        } else {
+          return false
+        }
+      })
+    },
     cancleOutSubmit () {},
-    removeMaterial (materil) {},
-    queryMaterials (query) {
+    queryMaterials (keyword) {
       this.loading = true
       const defaultParams = {
         limit: 1000,
         offset: 0,
-        embed: 'material'
+        embed: 'material',
+        keyword
       }
       this.$axios
         .get('/materials', {
-          params: Object.assign(defaultParams, query)
+          params: Object.assign(defaultParams)
         })
         .then(res => {
           const { data } = res.data
@@ -405,11 +490,52 @@ export default {
         .catch(() => {
           this.$message.error('原材料接口调用失败')
         })
+    },
+    queryAccounts (keyword) {
+      this.accountLoading = true
+      const defaultParams = {
+        limit: 1000,
+        offset: 0,
+        keyword
+      }
+      this.$axios
+        .get('/accounts', {
+          params: Object.assign(defaultParams)
+        })
+        .then(res => {
+          const { data } = res.data
+          this.accounts = data
+          this.accountLoading = false
+        })
+        .catch(() => {
+          this.$message.error('用户接口调用失败')
+        })
+    },
+    addMaterial () {
+      this.materialOutForm.materials.push({
+        material: '',
+        count: '',
+        remark: '',
+        order: ''
+      })
+    },
+    removeMaterial (materil) {
+      const index = this.materialOutForm.materials.indexOf(materil)
+      if (index !== -1) {
+        this.materialOutForm.materials.splice(index, 1)
+      }
+    },
+    changeTotalCount (item) {
+      if (item && item.count && _.isNumber(parseInt(item.count))) {
+        this.materialOutForm.total_count += parseInt(item.count)
+      }
     }
   },
 
   created () {
     this.getMaterialOuts()
+    this.queryAccounts()
+    this.queryMaterials()
   }
 }
 </script>
@@ -534,7 +660,7 @@ export default {
       }
     }
   }
-  .out-form-container {
+  .out-material-container {
     .el-form-item__content {
       width: 400px;
     }
@@ -550,6 +676,11 @@ export default {
     .out-count {
       width: 183px;
     }
+  }
+  .out-reason,
+  .out-applicant,
+  .out-total-count {
+    width: 390px;
   }
 }
 </style>
