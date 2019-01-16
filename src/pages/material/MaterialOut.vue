@@ -41,7 +41,7 @@
     </div>
 
     <div class="material-outs">
-      <el-table :data="materialOuts" style="width: 100%" @row-click="showDetail">
+      <el-table :data="materialOuts" style="width: 100%" :loading="tableLoading">
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
         <el-table-column label="出库单编号" prop="no" width="100px"></el-table-column>
         <el-table-column label="申请者" prop="applicant.name" width="80px"></el-table-column>
@@ -50,10 +50,19 @@
         <el-table-column label="制作者" prop="maker.name" width="80px"></el-table-column>
         <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
         <el-table-column label="创建时间" prop="created_at"></el-table-column>
+        <el-table-column label="详情">
+          <template slot-scope="scope">
+            <el-button size="mini" @click="showDetail(scope.row)" type="text">查看出库单详情</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
-            <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+            <el-button size="mini" @click="editOut(scope.row)">修改</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="deleteOut(scope.$index, scope.row, event)"
+            >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -149,11 +158,7 @@
           class="material-dialog"
           label-position="right"
         >
-          <el-form-item
-            label="申请人"
-            :prop="applicant"
-            :rules="{required: true, message: '领料人不能为空', trigger: 'blur'}"
-          >
+          <el-form-item label="申请人" :rules="{required: true, message: '领料人不能为空', trigger: 'blur'}">
             <el-select
               v-model="materialOutForm.applicant"
               filterable
@@ -172,18 +177,13 @@
               ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item
-            label="原因"
-            prop="reason"
-            :rules="{required: true, message: '材料用途不能为空', trigger: 'blur'}"
-          >
+          <el-form-item label="原因" :rules="{required: true, message: '材料用途不能为空', trigger: 'blur'}">
             <el-input v-model="materialOutForm.reason" class="out-reason" placeholder="请输入材料用途"></el-input>
           </el-form-item>
           <el-form-item
             v-for="(item, index) in materialOutForm.materials"
             :label="`材料${index + 1}`"
             :key="index"
-            :prop="'materials.' + index + '.material'"
             class="out-material-container"
             :rules="{required: true, message: '材料信息不能为空', trigger: 'blur'}"
           >
@@ -330,8 +330,10 @@ export default {
       materials: [],
       accounts: [],
       loading: false,
+      tableLoading: false,
       accountLoading: false,
-      materialOutDialogTitle: ''
+      materialOutDialogTitle: '',
+      isOutUpdate: false
     }
   },
 
@@ -372,6 +374,7 @@ export default {
 
     // 数据统一处理函数
     getMaterialOuts (params) {
+      this.tableLoading = true
       const { pageSize, currentPage } = this.page
       const defaultParams = {
         limit: pageSize,
@@ -394,9 +397,11 @@ export default {
             return item
           })
           this.page.total = meta.count
+          this.tableLoading = false
         })
         .catch(() => {
           this.$message.error('出库单列表获取失败')
+          this.tableLoading = false
         })
     },
     printer () {
@@ -408,6 +413,7 @@ export default {
     addMaterialOut () {
       this.materialOutDialogTitle = '新增材料出库单';
       this.showAddDialog = true
+      this.isOutUpdate = false
     },
     closeMaterialOutForm () {
       this.showAddDialog = false
@@ -416,24 +422,31 @@ export default {
       let url = '/material_outs';
       let method = 'post';
       const formData = this[form]
-      formData.maker = JSON.parse(window.localStorage.getItem('user'))._id
-      const isUpdate = !!formData._id
+      if (!formData.maker) {
+        formData.maker = JSON.parse(window.localStorage.getItem('user'))._id
+      }
 
-      if (isUpdate) {
-        url = `/materials/${formData._id}`
+      if (this.isOutUpdate) {
+        url = `/material_outs/${formData._id}`
         method = 'patch';
-        formData.category = formData.category._id
-        formData.supplier = formData.supplier._id
-        delete formData.enable
+        formData.materials.forEach(item => {
+          if (typeof item.material === 'object') {
+            item.material = item.material._id
+          }
+        })
+        if (typeof formData.maker === 'object') {
+          formData.maker = formData.maker._id
+        }
+        if (typeof formData.applicant === 'object') {
+          formData.applicant = formData.applicant._id
+        }
+
         delete formData.index
         delete formData.created_at
         delete formData.updated_at
-        delete formData.wasted_num
-        delete formData.total_num
         delete formData.__v
+        delete formData.no
         delete formData._id
-        delete formData.left_num
-        delete formData.marked_price
       }
       this.$refs[form].validate(valid => {
         if (valid) {
@@ -446,25 +459,29 @@ export default {
             .then(res => {
               // 刷新列表
               this.$message.success({
-                message: isUpdate ? '修改材料出库单成功' : '新增材料出库单成功',
+                message: this.isOutUpdate
+                  ? '修改材料出库单成功'
+                  : '新增材料出库单成功',
                 duration: 1500,
-                onClose: () => {
-                  this.showDialog = false
-                  this.searching(true)
-                }
+                onClose: () => {}
               })
+              this.getMaterialOuts()
+              this.showAddDialog = false
             })
             .catch(err => {
               if (err.request && err.request.status === 400) {
                 this.$message.error('参数错误')
               } else this.$message.error('接口请求失败')
+              this.showAddDialog = false
             })
         } else {
           return false
         }
       })
     },
-    cancleOutSubmit () {},
+    cancleOutSubmit () {
+      this.showAddDialog = false
+    },
     queryMaterials (keyword) {
       this.loading = true
       const defaultParams = {
@@ -527,8 +544,47 @@ export default {
     },
     changeTotalCount (item) {
       if (item && item.count && _.isNumber(parseInt(item.count))) {
-        this.materialOutForm.total_count += parseInt(item.count)
+        this.materialOutForm.total_count = 0
+        this.materialOutForm.materials.forEach(material => {
+          this.materialOutForm.total_count += parseInt(material.count)
+        })
       }
+    },
+    deleteOut (index, row, event) {
+      this.$confirm('此操作将永久删除该出库单, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.$axios
+            .delete(`/material_outs/${row._id}`)
+            .then(res => {
+              this.$message.success({
+                message: '删除出库单成功',
+                duration: 1500,
+                onClose: () => {
+                  this.showDialog = false
+                  this.getMaterialOuts()
+                }
+              })
+            })
+            .catch(() => {
+              this.$message.error('删除出库单接口调用失败')
+            })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    editOut (row) {
+      this.showAddDialog = true
+      this.materialOutDialogTitle = '修改材料出库单';
+      this.isOutUpdate = true
+      this.materialOutForm = _.clone(row)
     }
   },
 
