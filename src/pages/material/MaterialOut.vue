@@ -48,19 +48,37 @@
         <el-table-column label="原因" prop="reason" width="80px"></el-table-column>
         <el-table-column label="总数量" prop="total_count" width="80px"></el-table-column>
         <el-table-column label="制作者" prop="maker.name" width="80px"></el-table-column>
-        <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
         <el-table-column label="创建时间" prop="created_at"></el-table-column>
         <el-table-column label="详情">
           <template slot-scope="scope">
             <el-button size="mini" @click="showDetail(scope.row)" type="text">查看出库单详情</el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200px">
+        <el-table-column label="审核状态" width="180px">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editOut(scope.row)">修改</el-button>
+            <div v-if="scope.row.status === 'UNREVIEW' && ['CAIWU','ADMIN'].includes(user.role)">
+              <el-button size="mini" @click="editOut(scope.row)">通过</el-button>
+              <el-button
+                size="mini"
+                type="danger"
+                @click="deleteOut(scope.$index, scope.row, event)"
+              >驳回</el-button>
+            </div>
+            <span v-if="scope.row.status === 'UNREVIEW'">未审核</span>
+            <span v-else>{{scope.row.status === 'PASSED' ? '已通过' : '审核不通过'}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180px">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="editOut(scope.row)"
+              v-if="['UNREVIEW', 'REJECTED'].includes(scope.row.status)"
+            >{{scope.row.status === 'UNREVIEW' ? '修改': '修改并从新审核'}}</el-button>
             <el-button
               size="mini"
               type="danger"
+              v-if="user.role === 'ADMIN'"
               @click="deleteOut(scope.$index, scope.row, event)"
             >删除</el-button>
           </template>
@@ -229,10 +247,13 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 const moment = require('moment-timezone')
 const _ = require('underscore')
+
 export default {
   name: 'MaterialOut',
+
   data () {
     return {
       searchingForm: {
@@ -337,6 +358,12 @@ export default {
     }
   },
 
+  computed: {
+    ...mapGetters({
+      user: 'user/user'
+    })
+  },
+
   methods: {
     searching (isNewSearch = true) {
       const { keyword, dateTime, status } = this.searchingForm
@@ -406,7 +433,7 @@ export default {
     },
     printer () {
       window.jQuery('.material-out-container').printThis({
-        debug: true,
+        debug: false,
         importCSS: true,
         importStyle: true
       })
@@ -424,7 +451,7 @@ export default {
       let method = 'post';
       const formData = this[form]
       if (!formData.maker) {
-        formData.maker = JSON.parse(window.localStorage.getItem('user'))._id
+        formData.maker = this.user._id
       }
 
       if (this.isOutUpdate) {
@@ -441,6 +468,7 @@ export default {
         if (typeof formData.applicant === 'object') {
           formData.applicant = formData.applicant._id
         }
+        if (formData.status === 'REJECTED') formData.status = 'UNREVIEW';
 
         delete formData.index
         delete formData.created_at
@@ -609,12 +637,6 @@ export default {
       margin-right: 0;
       margin-bottom: 0;
       width: 50%;
-    }
-  }
-  .material-outs {
-    .el-table th,
-    .el-table tr {
-      cursor: pointer;
     }
   }
   .searching {
