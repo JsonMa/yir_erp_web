@@ -114,7 +114,7 @@
             <div class="material-out-caption">
               <p
                 class="material-out-caption-department"
-              >领料部门：{{currentOut.applicant.department.name}}</p>
+              >领料部门：{{currentOut.applicant.department ? currentOut.applicant.department.name :''}}</p>
               <p class="material-out-caption-application">领料人：{{currentOut.applicant.name}}</p>
               <p class="material-out-caption-date">出库单日期：{{currentOut.created_at}}</p>
               <p class="material-out-caption-no">出库单编号：{{currentOut.no}}</p>
