@@ -243,7 +243,7 @@ export default {
       materialOuts: [],
       page: {
         currentPage: 1,
-        pageSize: 1,
+        pageSize: 10,
         total: 0
       },
       dateTimeOptions: {
@@ -406,6 +406,7 @@ export default {
     },
     printer () {
       window.jQuery('.material-out-container').printThis({
+        debug: true,
         importCSS: true,
         importStyle: true
       })
@@ -596,7 +597,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scope>
 .material-out {
   .table-expand {
     font-size: 0;
@@ -641,81 +642,6 @@ export default {
     padding: 20px 0 0 0;
   }
 
-  // 出库单详情
-  .material-out-detail {
-    .el-dialog {
-      min-width: 960px;
-    }
-    .el-dialog__body {
-      padding: 0px 20px 70px 20px;
-    }
-    .material-out-printer {
-      padding: 10px 0 0 0;
-      text-align: right;
-    }
-  }
-
-  .material-out-container {
-    text-align: center;
-    .material-out-remark {
-      margin: 10px 0;
-      .material-out-remark-title {
-        font-size: 24px;
-        padding: 10px 0;
-      }
-    }
-    .material-out-caption {
-      font-size: 16px;
-      font-weight: boild;
-      padding-bottom: 5px;
-      display: flex;
-      justify-content: space-between;
-      flex-direction: row;
-      p {
-        margin-right: 10px;
-        text-align: left;
-      }
-      .material-out-caption-department {
-        width: 165px;
-      }
-      .material-out-caption-application {
-        width: 150px;
-      }
-      .material-out-caption-date {
-        width: 285px;
-      }
-      .material-out-caption-no {
-        width: 260px;
-      }
-    }
-    .material-out-table {
-      td,
-      th {
-        padding: 10px 5px;
-        text-align: center;
-      }
-      .material-out-item-smaller {
-        width: 50px;
-      }
-      .material-out-item-middle {
-        width: 100px;
-      }
-      min-width: 920px;
-      border: 1px solid silver;
-      .material-out-item-title {
-        font-weight: bold;
-      }
-    }
-    .material-out-sign {
-      padding-top: 15px;
-      width: 80%;
-      margin: 0 auto;
-      p {
-        width: 33%;
-        display: inline-block;
-      }
-    }
-  }
   .out-material-container {
     .el-form-item__content {
       width: 400px;
@@ -737,6 +663,81 @@ export default {
   .out-applicant,
   .out-total-count {
     width: 390px;
+  }
+}
+
+// 出库单详情
+.material-out-detail {
+  .el-dialog {
+    min-width: 960px;
+  }
+  .el-dialog__body {
+    padding: 0px 20px 70px 20px;
+  }
+  .material-out-printer {
+    padding: 10px 0 0 0;
+    text-align: right;
+  }
+}
+.material-out-container {
+  text-align: center;
+  .material-out-remark {
+    margin: 10px 0;
+    .material-out-remark-title {
+      font-size: 24px;
+      padding: 10px 0;
+    }
+  }
+  .material-out-caption {
+    font-size: 16px;
+    font-weight: bold;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    p {
+      margin-right: 10px;
+      text-align: left;
+    }
+    .material-out-caption-department {
+      width: 165px;
+    }
+    .material-out-caption-application {
+      width: 150px;
+    }
+    .material-out-caption-date {
+      width: 285px;
+    }
+    .material-out-caption-no {
+      width: 260px;
+    }
+  }
+  .material-out-table {
+    td,
+    th {
+      padding: 10px 5px;
+      text-align: center;
+    }
+    .material-out-item-smaller {
+      width: 50px;
+    }
+    .material-out-item-middle {
+      width: 100px;
+    }
+    min-width: 920px;
+    border: 1px solid silver;
+    .material-out-item-title {
+      font-weight: bold;
+    }
+  }
+  .material-out-sign {
+    padding-top: 15px;
+    width: 80%;
+    margin: 0 auto;
+    p {
+      width: 33%;
+      display: inline-block;
+    }
   }
 }
 </style>
