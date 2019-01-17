@@ -8,6 +8,7 @@
       </el-breadcrumb>
     </div>
 
+    <!-- 搜索条件 -->
     <div class="searching">
       <el-form :inline="true" :model="searchingForm" class="searching-form">
         <el-form-item>
@@ -76,10 +77,14 @@
         <el-table-column label="型号" prop="material.model"></el-table-column>
         <el-table-column label="入库数量" prop="real_count"></el-table-column>
         <el-table-column label="单位" prop="material.unit"></el-table-column>
-        <el-table-column label="入库金额" prop="total_price"></el-table-column>
+        <el-table-column label="总金额" prop="total_price"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
-        <el-table-column label="制单人" prop="maker.name" width="80px"></el-table-column>
         <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
+        <el-table-column label="详情" width="80px">
+          <template slot-scope="scope">
+            <el-button size="mini" type="text" @click="showDetail(scope.row)">查看详情</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
             <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
@@ -103,21 +108,115 @@
       ></el-pagination>
     </div>
 
-    <!-- <MaterialEntry :entry-visible="entryVisable" :entry="currentEntry" @entry-close="entryClose"></MaterialEntry> -->
+    <!-- 入库单详情 -->
+    <div class="material-entry-detail">
+      <el-dialog title="入库单" :visible.sync="detailVisable" @close="closeEntry" v-if="entryDetail">
+        <el-row class="entry-printer">
+          <el-button type="primary" size="small" @click="printer">打印</el-button>
+        </el-row>
+        <div class="entry-detail-container">
+          <div class="entry-remark">
+            <h2 class="entry-remark-title">入库单</h2>
+            <span class="entry-remark-item">一式四联，1库房2财务3采购员4质检</span>
+          </div>
+          <table class="entry-table" border="1">
+            <tr>
+              <th rowspan="2" colspan="2">材料入库单</th>
+              <td colspan="2">
+                <span class="entry-item-title">入库单编号：</span>
+                {{entryDetail.no}}
+              </td>
+              <td colspan="2">
+                <span class="entry-item-title">入库日期：</span>
+                {{entryDetail.created_at}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <span class="entry-item-title">供应商：</span>
+                {{entryDetail.material && entryDetail.material.supplier && entryDetail.material.supplier.name || '无'}}
+              </td>
+              <td colspan="2">
+                <span class="entry-item-title">送货人：</span>
+                {{entryDetail.sender || '无'}}
+              </td>
+            </tr>
+            <tr>
+              <th rowspan="3" colspan="2">
+                <p class="entry-item">{{entryDetail.material.no}}</p>
+                <p class="entry-item">{{entryDetail.material.name}}</p>
+                <p class="entry-item">{{entryDetail.remark}}</p>
+              </th>
+              <td>
+                <span class="entry-item-title">材料型号</span>
+              </td>
+              <td>{{entryDetail.material.model || '无'}}</td>
+              <td>
+                <span class="entry-item-title">材料规格</span>
+              </td>
+              <td>{{entryDetail.material.specific || '无'}}</td>
+            </tr>
+            <tr>
+              <td>
+                <span class="entry-item-title">检验数量</span>
+              </td>
+              <td>
+                {{entryDetail.application_count}}
+                {{entryDetail.unit}}
+              </td>
+              <td>
+                <span class="entry-item-title">质检结果</span>
+              </td>
+              <td>{{entryDetail.quality_result ? '合格':'不合格'}}</td>
+            </tr>
+            <tr>
+              <td>
+                <span class="entry-item-title">实际入库数</span>
+              </td>
+              <td>
+                {{entryDetail.real_count}}
+                {{entryDetail.unit}}
+              </td>
+              <td>
+                <span class="entry-item-title">单价</span>
+              </td>
+              <td>{{entryDetail.per_price}} / {{entryDetail.unit}}</td>
+            </tr>
+            <tr>
+              <td>
+                <span class="entry-item-title">制单人：</span>
+                {{entryDetail.maker.name}}
+              </td>
+              <td>
+                <span class="entry-item-title">购买人：</span>
+                {{entryDetail.buyer.name}}
+              </td>
+              <td>
+                <span class="entry-item-title">检验人：</span>
+                {{entryDetail.inspector.name}}
+              </td>
+              <td>
+                <span class="entry-item-title">审核人：</span>
+                {{entryDetail.reviewer.name}}
+              </td>
+              <td colspan="2" style="text-align: center; padding-right: 40px">
+                <span class="entry-item-title">总价：</span>
+                {{entryDetail.real_count * entryDetail.per_price}}
+                元
+              </td>
+            </tr>
+          </table>
+        </div>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
-// import MaterialEntry from '@/components/common/MaterialEntry.vue';
-
 const moment = require('moment-timezone')
 
 export default {
   name: 'MaterialEntry',
-
-  components: {
-    // MaterialEntry
-  },
 
   data () {
     return {
@@ -163,8 +262,12 @@ export default {
           }
         ]
       },
-      currentEntry: {},
-      entryVisable: false
+      entryDetail: '',
+      detailVisable: false,
+      materialLoading: false,
+      accountLoading: false,
+      materials: [],
+      accounts: []
     }
   },
 
@@ -180,12 +283,6 @@ export default {
       })
     },
     addMaterialEntry () {},
-
-    // 打开entry详情
-    showDetail (row) {
-      this.entryVisable = true
-      this.currentEntry = row
-    },
 
     // 关闭entry详情
     entryClose () {
@@ -225,8 +322,64 @@ export default {
           this.page.total = meta.count
         })
     },
-    printer (targetElement) {
-      window.jQuery(targetElement).printThis()
+
+    queryMaterials (keyword) {
+      this.materialLoading = true
+      const defaultParams = {
+        limit: 1000,
+        offset: 0,
+        embed: 'material',
+        keyword
+      }
+      this.$axios
+        .get('/materials', {
+          params: Object.assign(defaultParams)
+        })
+        .then(res => {
+          const { data } = res.data
+          const { currentPage, pageSize } = this.page
+          this.materials = data.map((item, index) => {
+            item.index = (currentPage - 1) * pageSize + index + 1
+            item.no = item.no.split('-')[0]
+            return item
+          })
+          this.materialLoading = false
+        })
+        .catch(() => {
+          this.$message.error('原材料接口调用失败')
+        })
+    },
+
+    queryAccounts (keyword) {
+      this.accountLoading = true
+      const defaultParams = {
+        limit: 1000,
+        offset: 0,
+        keyword
+      }
+      this.$axios
+        .get('/accounts', {
+          params: Object.assign(defaultParams)
+        })
+        .then(res => {
+          const { data } = res.data
+          this.accounts = data
+          this.accountLoading = false
+        })
+        .catch(() => {
+          this.$message.error('用户接口调用失败')
+        })
+    },
+    closeEntry () {},
+    printer () {
+      window.jQuery('.entry-detail-container').printThis({
+        importCSS: true,
+        importStyle: true
+      })
+    },
+    showDetail (row) {
+      this.entryDetail = row
+      this.detailVisable = true
     }
   },
 
@@ -273,6 +426,45 @@ export default {
   }
   .breadcrumb {
     padding: 20px 0 0 0;
+  }
+
+  .material-entry-detail {
+    .el-dialog__body {
+      padding: 0px 20px 70px 20px;
+    }
+    .entry-printer {
+      padding: 10px 0;
+      text-align: right;
+    }
+  }
+}
+.entry-detail-container {
+  text-align: center;
+  .entry-remark {
+    margin: 10px 0;
+    text-align: center;
+    .entry-remark-title {
+      font-size: 24px;
+      padding: 10px 0;
+    }
+    .remark {
+      color: red;
+    }
+  }
+  .entry-item {
+    padding-bottom: 10px;
+  }
+  .entry-table {
+    min-width: 920px;
+    border: 1px solid silver;
+    td,
+    th {
+      padding: 10px;
+      width: 150px;
+    }
+    .entry-item-title {
+      font-weight: bold;
+    }
   }
 }
 </style>
