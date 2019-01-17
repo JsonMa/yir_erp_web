@@ -57,12 +57,8 @@
         <el-table-column label="审核状态" width="180px">
           <template slot-scope="scope">
             <div v-if="scope.row.status === 'UNREVIEW' && ['CAIWU','ADMIN'].includes(user.role)">
-              <el-button size="mini" @click="editOut(scope.row)">通过</el-button>
-              <el-button
-                size="mini"
-                type="danger"
-                @click="deleteOut(scope.$index, scope.row, event)"
-              >驳回</el-button>
+              <el-button size="mini" @click="reviewOut(scope.row, 'PASSED')">通过</el-button>
+              <el-button size="mini" type="danger" @click="reviewOut(scope.row, 'REJECTED')">驳回</el-button>
             </div>
             <span v-if="scope.row.status === 'UNREVIEW'">未审核</span>
             <span v-else>{{scope.row.status === 'PASSED' ? '已通过' : '审核不通过'}}</span>
@@ -140,7 +136,7 @@
               <td>{{out.material.model}}</td>
               <td>{{out.material.unit}}</td>
               <td>{{out.material.supplier.name}}</td>
-              <td>{{out.material.left_num}}</td>
+              <td>{{out.left_count || out.material.left_num}}</td>
               <td>{{out.count}}</td>
               <td>{{out.order || '无'}}</td>
               <td>{{out.remark || '无'}}</td>
@@ -381,7 +377,8 @@ export default {
       let totalLeft = 0
       row.materials.forEach((item, index) => {
         item.index = index + 1
-        totalLeft += item.material.left_num
+        const left = item.left_count || item.material.left_num
+        totalLeft += left
       })
       row.totalLeft = totalLeft
       this.outVisiable = true
@@ -476,6 +473,7 @@ export default {
         delete formData.__v
         delete formData.no
         delete formData._id
+        delete formData.totalLeft
       }
       this.$refs[form].validate(valid => {
         if (valid) {
@@ -609,11 +607,34 @@ export default {
           })
         })
     },
-    editOut (row) {
+    editOut (row, status) {
       this.showAddDialog = true
       this.materialOutDialogTitle = '修改材料出库单';
       this.isOutUpdate = true
       this.materialOutForm = _.clone(row)
+    },
+    reviewOut (row, status) {
+      if (status) this.materialOutForm.status = status
+      this.$axios
+        .request({
+          url: `/material_outs/${row._id}`,
+          method: 'patch',
+          data: {
+            status
+          }
+        })
+        .then(res => {
+          this.$message.success({
+            message: '修改审核状态成功',
+            duration: 1500,
+            onClose: () => {}
+          })
+        })
+        .catch(err => {
+          if (err.request && err.request.status === 400) {
+            this.$message.error('参数错误')
+          } else this.$message.error('接口请求失败')
+        })
     }
   },
 

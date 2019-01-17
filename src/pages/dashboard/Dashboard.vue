@@ -127,7 +127,7 @@ export default {
         .then(res => {
           const { data, meta } = res.data
           data.forEach(item => {
-            this.material.entryNumber += item.real_count
+            this.material.entryNumber += parseInt(item.real_count)
           })
           this.materialEntries = meta
         })
@@ -148,7 +148,7 @@ export default {
           const { data, meta } = res.data
           data.forEach(item => {
             item.materials.forEach(material => {
-              this.material.outNumber += material.count
+              this.material.outNumber += parseInt(material.count)
             })
           })
           this.materialOuts = meta
