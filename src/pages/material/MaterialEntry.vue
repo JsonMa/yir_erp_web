@@ -60,10 +60,11 @@
                 <span>{{ props.row.buyer.name }}</span>
               </el-form-item>
               <el-form-item label="质检员：">
-                <span>{{ props.row.inspector.name }}</span>
+                <span>{{ props.row.inspector ? props.row.inspector.name : '待质检' }}</span>
               </el-form-item>
               <el-form-item label="质检结果：">
-                <span>{{ props.row.quality_result ? '通过' : '不通过' }}</span>
+                <span v-if="props.row.quality_result">{{ props.row.quality_result ? '通过' : '不通过' }}</span>
+                <span v-else>'待质检'</span>
               </el-form-item>
               <el-form-item label="付款方式：">
                 <span>{{ props.row.purchase_method }}</span>
@@ -75,7 +76,9 @@
         <el-table-column label="入库单编号" prop="no"></el-table-column>
         <el-table-column label="材料名称" prop="material.name"></el-table-column>
         <el-table-column label="型号" prop="material.model"></el-table-column>
-        <el-table-column label="入库数量" prop="real_count"></el-table-column>
+        <el-table-column label="入库数量">
+          <template slot-scope="scope">{{scope.row.real_count || scope.row.application_count}}</template>
+        </el-table-column>
         <el-table-column label="单位" prop="material.unit"></el-table-column>
         <el-table-column label="总金额" prop="total_price"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
@@ -174,13 +177,13 @@
                 <span class="entry-item-title">实际入库数</span>
               </td>
               <td>
-                {{entryDetail.real_count}}
-                {{entryDetail.unit}}
+                {{entryDetail.real_count || '待检验'}}
+                {{entryDetail.real_count ? entryDetail.material.unit : ''}}
               </td>
               <td>
                 <span class="entry-item-title">单价</span>
               </td>
-              <td>{{entryDetail.per_price}} / {{entryDetail.unit}}</td>
+              <td>{{entryDetail.per_price}} / {{entryDetail.material.unit}}</td>
             </tr>
             <tr>
               <td>
@@ -193,15 +196,15 @@
               </td>
               <td>
                 <span class="entry-item-title">检验人：</span>
-                {{entryDetail.inspector.name}}
+                {{entryDetail.inspector? entryDetail.inspector.name : '待检验'}}
               </td>
               <td>
                 <span class="entry-item-title">审核人：</span>
-                {{entryDetail.reviewer.name}}
+                {{entryDetail.reviewer?ntryDetail.reviewer.name: '待审核'}}
               </td>
               <td colspan="2" style="text-align: center; padding-right: 40px">
                 <span class="entry-item-title">总价：</span>
-                {{entryDetail.real_count * entryDetail.per_price}}
+                {{entryDetail.total_price}}
                 元
               </td>
             </tr>
@@ -360,7 +363,7 @@
           <el-form-item label="送货人" prop="sender">
             <el-input v-model="materialEntryForm.sender" class="per-price" placeholder="请填写送货人"></el-input>
           </el-form-item>
-          <el-form-item label="总价" prop="total_price">
+          <el-form-item label="总价" prop="total_price" v-if="['ZHIJIAN'].includes(user.role)">
             <el-input v-model="materialEntryForm.total_price" class="total-price" disabled></el-input>
           </el-form-item>
           <el-form-item label="备注" prop="remark">
@@ -368,7 +371,7 @@
           </el-form-item>
           <el-form-item class="out-btn-container">
             <el-button @click="cancleEntrySubmit">取消</el-button>
-            <el-button type="primary" @click="submitMaterialEntryForm('materialOutForm')">保存</el-button>
+            <el-button type="primary" @click="submitMaterialEntryForm('materialEntryForm')">保存</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -484,7 +487,8 @@ export default {
         inspector: '',
         quality_result: '',
         purchase_method: ''
-      }
+      },
+      isEntryUpdate: false
     }
   },
 
@@ -628,10 +632,75 @@ export default {
           })
       })
     },
+    submitMaterialEntryForm (form) {
+      let url = '/material_entries';
+      let method = 'post';
+      const formData = this[form]
+      if (!formData.maker) {
+        formData.maker = this.user._id
+      }
+      Object.keys(formData).forEach(key => {
+        if (!formData[key]) delete formData[key]
+      })
+
+      if (this.isEntryUpdate) {
+        url = `/material_outs/${formData._id}`
+        method = 'patch';
+        formData.materials.forEach(item => {
+          if (typeof item.material === 'object') {
+            item.material = item.material._id
+          }
+        })
+        if (typeof formData.maker === 'object') {
+          formData.maker = formData.maker._id
+        }
+        if (typeof formData.applicant === 'object') {
+          formData.applicant = formData.applicant._id
+        }
+        if (formData.status === 'REJECTED') formData.status = 'UNREVIEW';
+
+        delete formData.index
+        delete formData.created_at
+        delete formData.updated_at
+        delete formData.__v
+        delete formData.no
+        delete formData._id
+        delete formData.totalLeft
+      }
+      this.$refs[form].validate(valid => {
+        if (valid) {
+          this.$axios
+            .request({
+              url,
+              method,
+              data: formData
+            })
+            .then(res => {
+              // 刷新列表
+              this.$message.success({
+                message: this.isEntryUpdate
+                  ? '修改材料入库单成功'
+                  : '新增材料入库单成功',
+                duration: 1500,
+                onClose: () => {}
+              })
+              this.getMaterialEntries()
+              this.showAddDialog = false
+            })
+            .catch(err => {
+              if (err.request && err.request.status === 400) {
+                this.$message.error('参数错误')
+              } else this.$message.error('接口请求失败')
+              this.showAddDialog = false
+            })
+        } else {
+          return false
+        }
+      })
+    },
     closeMaterialEntryForm () {
       this.showAddDialog = false
     },
-    submitMaterialEntryForm () {},
     cancleEntrySubmit () {
       this.showAddDialog = false
     }
