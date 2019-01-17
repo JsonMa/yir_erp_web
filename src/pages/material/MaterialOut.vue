@@ -81,6 +81,7 @@
         </el-table-column>
       </el-table>
     </div>
+
     <div class="paging" v-if="materialOuts.length">
       <el-pagination
         @size-change="handleSizeChange"
@@ -582,30 +583,23 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      })
-        .then(() => {
-          this.$axios
-            .delete(`/material_outs/${row._id}`)
-            .then(res => {
-              this.$message.success({
-                message: '删除出库单成功',
-                duration: 1500,
-                onClose: () => {
-                  this.showDialog = false
-                  this.getMaterialOuts()
-                }
-              })
+      }).then(() => {
+        this.$axios
+          .delete(`/material_outs/${row._id}`)
+          .then(res => {
+            this.$message.success({
+              message: '删除出库单成功',
+              duration: 1500,
+              onClose: () => {
+                this.showDialog = false
+                this.getMaterialOuts()
+              }
             })
-            .catch(() => {
-              this.$message.error('删除出库单接口调用失败')
-            })
-        })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
           })
-        })
+          .catch(() => {
+            this.$message.error('删除出库单接口调用失败')
+          })
+      })
     },
     editOut (row, status) {
       this.showAddDialog = true

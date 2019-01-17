@@ -87,8 +87,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
-            <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+            <el-button size="mini" @click="editEntry(scope.$index, scope.row)">修改</el-button>
+            <el-button size="mini" type="danger" @click="deleteEntry(scope.$index, scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -209,15 +209,184 @@
         </div>
       </el-dialog>
     </div>
+
+    <!-- 新增入库单 -->
+    <div class="material-entry-add">
+      <el-dialog
+        :title="materialEntryDialogTitle"
+        :visible.sync="showAddDialog"
+        width="30%"
+        :before-close="closeMaterialEntryForm"
+      >
+        <el-form
+          :model="materialEntryForm"
+          ref="materialEntryForm"
+          label="采购员"
+          label-width="100px"
+          class="material-dialog"
+          label-position="right"
+        >
+          <el-form-item label="采购员" :rules="{required: true, message: '采购员不能为空', trigger: 'blur'}">
+            <el-select
+              v-model="materialEntryForm.buyer"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入采购人关键词"
+              :remote-method="queryAccounts"
+              :loading="accountLoading"
+              class="out-applicant"
+            >
+              <el-option
+                v-for="(account, index) in accounts"
+                :key="index"
+                :label="`${account.department.name}:${account.name}`"
+                :value="account._id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <!-- <el-form-item label="质检员" :rules="{required: true, message: '质检员不能为空', trigger: 'blur'}">
+            <el-select
+              v-model="materialEntryForm.inspector"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入质检员关键词"
+              :remote-method="queryAccounts"
+              :loading="accountLoading"
+              class="out-applicant"
+            >
+              <el-option
+                v-for="(account, index) in accounts"
+                :key="index"
+                :label="`${account.department.name}:${account.name}`"
+                :value="account._id"
+              ></el-option>
+            </el-select>
+          </el-form-item>-->
+          <el-form-item
+            label="入库材料"
+            class="entry-material-container"
+            :rules="{required: true, message: '入库材料不能为空', trigger: 'blur'}"
+          >
+            <el-select
+              v-model="materialEntryForm.material"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入材料关键词"
+              :remote-method="queryMaterials"
+              :loading="materialLoading"
+              class="entry-material entry-form-item"
+            >
+              <el-option
+                v-for="(material, index) in materials"
+                :key="index"
+                :label="`${material.no}:${material.name}`"
+                :value="material._id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            label="付款方式"
+            prop="purchase_method"
+            :rules="{required: true, message: '付款方式不能为空', trigger: 'blur'}"
+          >
+            <el-select
+              v-model="materialEntryForm.purchase_method"
+              filterable
+              placeholder="请选择付款方式"
+              class="entry-material entry-form-item"
+            >
+              <el-option
+                v-for="(method, index) in purchase_methods"
+                :key="index"
+                :label="method.name"
+                :value="method.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            label="入库数量"
+            prop="application_count"
+            :rules="{required: true, message: '入库数量不能为空', trigger: 'blur'}"
+          >
+            <el-input
+              v-model="materialEntryForm.application_count"
+              class="applicant-count"
+              placeholder="请填写入库数量"
+            ></el-input>
+          </el-form-item>
+          <el-form-item
+            v-if="['ZHIJIAN'].includes(user.role)"
+            label="实际数量"
+            prop="application_count"
+            :rules="{required: true, message: '实际入库数量不能为空', trigger: 'blur'}"
+          >
+            <el-input
+              v-model="materialEntryForm.application_count"
+              class="applicant-count"
+              placeholder="请填写实际入库数量"
+              :disabled="['ZHIJIAN'].includes(user.role)"
+            ></el-input>
+          </el-form-item>
+          <el-form-item
+            label="材料单价"
+            prop="per_price"
+            :rules="{required: true, message: '单价不能为空', trigger: 'blur'}"
+          >
+            <el-input v-model="materialEntryForm.per_price" class="per-price" placeholder="请填写单价"></el-input>
+          </el-form-item>
+          <el-form-item
+            v-if="['ZHIJIAN'].includes(user.role)"
+            label="质检结果"
+            prop="quality_result"
+            :rules="{required: true, message: '质检结果不能为空', trigger: 'blur'}"
+          >
+            <el-select
+              v-model="materialEntryForm.quality_result"
+              filterable
+              placeholder="请选择质检结果"
+              class="entry-material entry-form-item"
+            >
+              <el-option
+                v-for="(result, index) in quality_results"
+                :key="index"
+                :label="result.name"
+                :value="result.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="送货人" prop="sender">
+            <el-input v-model="materialEntryForm.sender" class="per-price" placeholder="请填写送货人"></el-input>
+          </el-form-item>
+          <el-form-item label="总价" prop="total_price">
+            <el-input v-model="materialEntryForm.total_price" class="total-price" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="备注" prop="remark">
+            <el-input v-model="materialEntryForm.remark" class="per-price" placeholder="请填写备注信息"></el-input>
+          </el-form-item>
+          <el-form-item class="out-btn-container">
+            <el-button @click="cancleEntrySubmit">取消</el-button>
+            <el-button type="primary" @click="submitMaterialEntryForm('materialOutForm')">保存</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 const moment = require('moment-timezone')
 
 export default {
   name: 'MaterialEntry',
-
+  computed: {
+    ...mapGetters({
+      user: 'user/user'
+    })
+  },
   data () {
     return {
       searchingForm: {
@@ -266,8 +435,56 @@ export default {
       detailVisable: false,
       materialLoading: false,
       accountLoading: false,
+      showAddDialog: false,
+      materialEntryDialogTitle: '新增入库单',
       materials: [],
-      accounts: []
+      accounts: [],
+      purchase_methods: [
+        {
+          name: '现金',
+          value: 'CASH'
+        },
+        {
+          name: '银行',
+          value: 'BANK'
+        },
+        {
+          name: '微信',
+          value: 'WECHAT'
+        },
+        {
+          name: '支付宝',
+          value: 'ALIPAY'
+        }
+      ],
+      quality_results: [
+        {
+          name: '通过',
+          value: 'true'
+        },
+        {
+          name: '不通过',
+          value: 'true'
+        },
+        {
+          name: '部分通过',
+          value: 'true'
+        }
+      ],
+      materialEntryForm: {
+        material: '',
+        application_count: '',
+        real_count: '',
+        per_price: '',
+        total_price: '',
+        buyer: '',
+        remark: '',
+        sender: '',
+        maker: '',
+        inspector: '',
+        quality_result: '',
+        purchase_method: ''
+      }
     }
   },
 
@@ -282,7 +499,9 @@ export default {
         end_time: dateTime[1]
       })
     },
-    addMaterialEntry () {},
+    addMaterialEntry () {
+      this.showAddDialog = true
+    },
 
     // 关闭entry详情
     entryClose () {
@@ -370,21 +589,58 @@ export default {
           this.$message.error('用户接口调用失败')
         })
     },
+
     closeEntry () {},
+
     printer () {
       window.jQuery('.entry-detail-container').printThis({
         importCSS: true,
         importStyle: true
       })
     },
+
     showDetail (row) {
       this.entryDetail = row
       this.detailVisable = true
+    },
+
+    editEntry (index, row) {},
+
+    deleteEntry (index, row) {
+      this.$confirm('此操作将永久删除该入库单, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios
+          .delete(`/material_entries/${row._id}`)
+          .then(res => {
+            this.$message.success({
+              message: '删除入库单成功',
+              duration: 1500,
+              onClose: () => {
+                this.getMaterialEntries()
+              }
+            })
+          })
+          .catch(() => {
+            this.$message.error('删除入库单接口调用失败')
+          })
+      })
+    },
+    closeMaterialEntryForm () {
+      this.showAddDialog = false
+    },
+    submitMaterialEntryForm () {},
+    cancleEntrySubmit () {
+      this.showAddDialog = false
     }
   },
 
   created () {
     this.getMaterialEntries()
+    this.queryMaterials()
+    this.queryAccounts()
   }
 }
 </script>
