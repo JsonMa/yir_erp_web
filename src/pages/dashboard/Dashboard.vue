@@ -112,7 +112,7 @@ export default {
     }
   },
   methods: {
-    getMaterialOuts () {
+    getMaterialEntrys () {
       this.$axios
         .get('/material_entries', {
           params: {
@@ -132,7 +132,7 @@ export default {
           this.materialEntries = meta
         })
     },
-    getMaterialEntrys () {
+    getMaterialOuts () {
       this.$axios
         .get('/material_outs', {
           params: {

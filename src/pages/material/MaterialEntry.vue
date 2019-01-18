@@ -73,16 +73,17 @@
           </template>
         </el-table-column>
         <el-table-column label="序号" prop="index" width="60px"></el-table-column>
-        <el-table-column label="入库单编号" prop="no"></el-table-column>
-        <el-table-column label="材料名称" prop="material.name"></el-table-column>
-        <el-table-column label="型号" prop="material.model"></el-table-column>
-        <el-table-column label="入库数量">
+        <el-table-column label="入库单编号" prop="no" width="100px"></el-table-column>
+        <el-table-column label="材料名称" prop="material.name" width="100px"></el-table-column>
+        <el-table-column label="型号" prop="material.model" width="120px"></el-table-column>
+        <el-table-column label="入库数量" width="80px">
           <template slot-scope="scope">{{scope.row.real_count || scope.row.application_count}}</template>
         </el-table-column>
-        <el-table-column label="单位" prop="material.unit"></el-table-column>
-        <el-table-column label="总金额" prop="total_price"></el-table-column>
+        <el-table-column label="单位" prop="material.unit" width="80px"></el-table-column>
+        <el-table-column label="单价" prop="per_price" v-if="user.role === 'CAIGOU'" width="80px"></el-table-column>
+        <el-table-column label="总金额" prop="total_price" width="80px"></el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
-        <el-table-column label="审核状态" prop="status" width="80px"></el-table-column>
+        <el-table-column label="审核状态" prop="cnstatus" width="80px"></el-table-column>
         <el-table-column label="详情" width="80px">
           <template slot-scope="scope">
             <el-button size="mini" type="text" @click="showDetail(scope.row)">查看详情</el-button>
@@ -90,8 +91,17 @@
         </el-table-column>
         <el-table-column label="操作" width="200px">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editEntry(scope.$index, scope.row)">修改</el-button>
-            <el-button size="mini" type="danger" @click="deleteEntry(scope.$index, scope.row)">删除</el-button>
+            <el-button
+              size="mini"
+              v-if="scope.row.hasModifyRight"
+              @click="editEntry(scope.$index, scope.row)"
+            >修改</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              v-if="user.role === 'ADMIN'"
+              @click="deleteEntry(scope.$index, scope.row)"
+            >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -115,7 +125,7 @@
     <div class="material-entry-detail">
       <el-dialog title="入库单" :visible.sync="detailVisable" @close="closeEntry" v-if="entryDetail">
         <el-row class="entry-printer">
-          <el-button type="primary" size="small" @click="printer">打印</el-button>
+          <el-button type="primary" size="small" v-if="user.role === 'CAIGOU'" @click="printer">打印</el-button>
         </el-row>
         <div class="entry-detail-container">
           <div class="entry-remark">
@@ -177,13 +187,17 @@
                 <span class="entry-item-title">实际入库数</span>
               </td>
               <td>
-                {{entryDetail.real_count || '待检验'}}
+                {{entryDetail.real_count || ''}}
                 {{entryDetail.real_count ? entryDetail.material.unit : ''}}
               </td>
               <td>
-                <span class="entry-item-title">单价</span>
+                <span class="entry-item-title">材料单价</span>
               </td>
-              <td>{{entryDetail.per_price}} / {{entryDetail.material.unit}}</td>
+              <td>
+                <span
+                  v-if="hasPriceRight && !isPrinting"
+                >{{entryDetail.per_price}} / {{entryDetail.material.unit}}</span>
+              </td>
             </tr>
             <tr>
               <td>
@@ -196,16 +210,18 @@
               </td>
               <td>
                 <span class="entry-item-title">检验人：</span>
-                {{entryDetail.inspector? entryDetail.inspector.name : '待检验'}}
+                {{entryDetail.inspector? entryDetail.inspector.name : ''}}
               </td>
               <td>
                 <span class="entry-item-title">审核人：</span>
-                {{entryDetail.reviewer?ntryDetail.reviewer.name: '待审核'}}
+                {{entryDetail.reviewer?ntryDetail.reviewer.name: ''}}
               </td>
-              <td colspan="2" style="text-align: center; padding-right: 40px">
+              <td colspan="2">
                 <span class="entry-item-title">总价：</span>
-                {{entryDetail.total_price}}
-                元
+                <span v-if="hasPriceRight && !isPrinting">
+                  {{entryDetail.total_price}}
+                  元
+                </span>
               </td>
             </tr>
           </table>
@@ -388,7 +404,10 @@ export default {
   computed: {
     ...mapGetters({
       user: 'user/user'
-    })
+    }),
+    hasPriceRight () {
+      return ['CAIGOU', 'CAIWU', 'ADMIN'].includes(this.user.role)
+    }
   },
   data () {
     return {
@@ -488,7 +507,8 @@ export default {
         quality_result: '',
         purchase_method: ''
       },
-      isEntryUpdate: false
+      isEntryUpdate: false,
+      isPrinting: false
     }
   },
 
@@ -535,6 +555,29 @@ export default {
           const { data, meta } = res.data
           const { currentPage, pageSize } = this.page
           this.materialEntries = data.map((item, index) => {
+            item.hasModifyRight = false
+            if (this.user.role === 'CAIGOU' && item.status === 'INSPECTION') {
+              item.hasModifyRight = true
+            }
+            switch (item.status) {
+              case 'INSPECTION':
+                item.cnstatus = '待质检';
+                break
+              case 'STORAGE':
+                item.cnstatus = '待入库';
+                break
+              case 'UNREVIEW':
+                item.cnstatus = '待审核';
+                break
+              case 'PASSED':
+                item.cnstatus = '审核通过';
+                break
+              case 'REJECTED':
+                item.cnstatus = '审核失败';
+                break
+              default:
+                break
+            }
             item.index = (currentPage - 1) * pageSize + index + 1
             item.no = item.no.split('-')[0]
             item.created_at = moment
@@ -597,10 +640,14 @@ export default {
     closeEntry () {},
 
     printer () {
+      this.isPrinting = true
       window.jQuery('.entry-detail-container').printThis({
         importCSS: true,
         importStyle: true
       })
+      setTimeout(() => {
+        this.isPrinting = false
+      }, 1000)
     },
 
     showDetail (row) {
@@ -786,6 +833,7 @@ export default {
     th {
       padding: 10px;
       width: 150px;
+      text-align: left;
     }
     .entry-item-title {
       font-weight: bold;
