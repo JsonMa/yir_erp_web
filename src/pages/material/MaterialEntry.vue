@@ -76,12 +76,14 @@
         <el-table-column label="入库单编号" prop="no" width="100px"></el-table-column>
         <el-table-column label="材料名称" prop="material.name" width="100px"></el-table-column>
         <el-table-column label="型号" prop="material.model" width="120px"></el-table-column>
-        <el-table-column label="入库数量" width="80px">
+        <el-table-column label="数量" width="80px">
           <template slot-scope="scope">{{scope.row.real_count || scope.row.application_count}}</template>
         </el-table-column>
-        <el-table-column label="单位" prop="material.unit" width="80px"></el-table-column>
         <el-table-column label="单价" prop="per_price" v-if="user.role === 'CAIGOU'" width="80px"></el-table-column>
-        <el-table-column label="总金额" prop="total_price" width="80px"></el-table-column>
+        <el-table-column label="单位" prop="material.unit" width="80px"></el-table-column>
+        <el-table-column label="总金额" width="80px">
+          <template slot-scope="scope">{{scope.row.total_price}}元</template>
+        </el-table-column>
         <el-table-column label="入库日期" prop="created_at"></el-table-column>
         <el-table-column label="审核状态" prop="cnstatus" width="80px"></el-table-column>
         <el-table-column label="详情" width="80px">
